@@ -3,7 +3,12 @@ package com.azurelithium.gueimboi.cpu;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Instruction {
+
+    final Logger logger = LoggerFactory.getLogger(Instruction.class);
 
     class InstructionContext {        
         int data;
@@ -31,7 +36,7 @@ public class Instruction {
     }
 
     public void execute() {
-        System.out.printf("Executing 0x%h : %s%n", opcode, mnemonic);
+        logger.debug("Executing instruction 0x{} : {}", String.format("%h", opcode), mnemonic);
         for (InstructionStep instructionStep : instructionSteps) {
             instructionStep.execute();
         }

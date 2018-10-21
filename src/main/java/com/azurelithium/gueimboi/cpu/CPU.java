@@ -2,7 +2,12 @@ package com.azurelithium.gueimboi.cpu;
 
 import com.azurelithium.gueimboi.memory.MMU;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CPU {
+
+    final Logger logger = LoggerFactory.getLogger(CPU.class);
 
     private Registers registers;
     private ISA isa;
@@ -18,10 +23,11 @@ public class CPU {
     public void runInstruction() {
         Instruction instruction = isa.getInstruction(0x7F);
         if (instruction == null) {
-            System.out.println("Unrecognized operation, aborting...");
+            logger.error("Unrecognized operation, aborting GueimBoi...");
             System.exit(1);
         }
         instruction.execute();
+        logger.info("Exiting GueimBoi.");
         System.exit(0);        
     }
 }

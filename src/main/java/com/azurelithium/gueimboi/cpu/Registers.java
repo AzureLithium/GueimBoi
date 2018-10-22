@@ -4,122 +4,130 @@ import com.azurelithium.gueimboi.utils.ByteUtils;
 
 public class Registers {
 
-    private byte a;
-    private byte b;
-    private byte c;
-    private byte d;
-    private byte e;
-    private byte h;
-    private byte l;
-    private short sp;
-    private short pc;
+    private int A;
+    private int B;
+    private int C;
+    private int D;
+    private int E;
+    private int H;
+    private int L;
+    private int SP;
+    private int PC;
     private Flags flags;
 
     Registers() {
         flags = new Flags();
     }
 
-    byte getA() {
-        return a;
+    int getA() {
+        return A;
     }
 
-    void setA(byte _a) {
-        a = _a;
+    void setA(int _A) {
+        A = _A;
     }
 
-    byte getB() {
-        return b;
+    int getB() {
+        return B;
     }
 
-    void setB(byte _b) {
-        b = _b;
+    void setB(int _B) {
+        B = _B;
     }
 
-    byte getC() {
-        return c;
+    int getC() {
+        return C;
     }
 
-    void setC(byte _c) {
-        c = _c;
+    void setC(int _C) {
+        C = _C;
     }
 
-    byte getD() {
-        return d;
+    int getD() {
+        return D;
     }
 
-    void setD(byte _d) {
-        d = _d;
+    void setD(int _D) {
+        D = _D;
     }
 
-    byte getE() {
-        return e;
+    int getE() {
+        return E;
     }
 
-    void setE(byte _e) {
-        e = _e;
+    void setE(int _E) {
+        E = _E;
     }
 
-    byte getH() {
-        return h;
+    int getH() {
+        return H;
     }
 
-    void setH(byte _h) {
-        h = _h;
+    void setH(int _H) {
+        H = _H;
     }
 
-    byte getL() {
-        return l;
+    int getL() {
+        return L;
     }
 
-    void setL(byte _l) {
-        l = _l;
+    void setL(int _L) {
+        L = _L;
     }
 
-    short getAF() {
-        return ByteUtils.toWord(a, flags.getFlags());
+    int getAF() {
+        return ByteUtils.toWord(A, flags.getFlags());
     }
 
-    short getBC() {
-        return ByteUtils.toWord(b, c);
+    int getBC() {
+        return ByteUtils.toWord(B, C);
     }
 
-    void setBC(short _bc) {
-        b = ByteUtils.getMSB(_bc);
-        c = ByteUtils.getLSB(_bc);
+    void setBC(int _BC) {
+        B = ByteUtils.getMSB(_BC);
+        C = ByteUtils.getLSB(_BC);
     }
 
-    short getDE() {
-        return ByteUtils.toWord(d, e);
+    int getDE() {
+        return ByteUtils.toWord(D, E);
     }
 
-    void setDE(short _de) {
-        d = ByteUtils.getMSB(_de);
-        e = ByteUtils.getLSB(_de);
+    void setDE(int _DE) {
+        D = ByteUtils.getMSB(_DE);
+        E = ByteUtils.getLSB(_DE);
     }
 
-    short getHL() {
-        return ByteUtils.toWord(h, l);
+    int getHL() {
+        return ByteUtils.toWord(H, L);
     }
 
-    void setHL(short _hl) {
-        h = ByteUtils.getMSB(_hl);
-        l = ByteUtils.getLSB(_hl);
+    void setHL(int _HL) {
+        H = ByteUtils.getMSB(_HL);
+        L = ByteUtils.getLSB(_HL);
     }
 
-    short getSP() {
-        return sp;
+    int getSP() {
+        return SP;
     }
 
-    void setSP(short _sp) {
-        sp = _sp;
+    void setSP(int _SP) {
+        SP = _SP;
     }
 
-    short getPC() {
-        return pc;
+    void incrementSP(int _SP) {
+        SP += _SP;
     }
 
-    void setPC(short _pc) {
-        pc = _pc;
+    int getPC() {
+        return PC;
+    }
+
+    void setPC(int _PC) {
+        PC = _PC;
+    }
+
+    void incrementPC(int _PC) {
+        PC += _PC;
     }
 
 }

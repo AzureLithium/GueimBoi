@@ -4,7 +4,8 @@ import com.azurelithium.gueimboi.utils.ByteUtils;
 
 public class Flags {
 
-    private byte flags; // Layout => ZNHC---- : Z = Zero flag, N = Add/Sub flag, H = Half-carry flag, C = Carry flag
+    private byte flags; // Layout => ZNHC---- : Z = Zero flag, N = Add/Sub flag, H = Half-carry
+                        // flag, C = Carry flag
     private static final int Z_bit = 7;
     private static final int N_bit = 6;
     private static final int H_bit = 5;
@@ -72,23 +73,35 @@ public class Flags {
     }
 
     public void setZ(boolean bit) {
-        if (bit) ByteUtils.setBit(flags, Z_bit);
-        else ByteUtils.unsetBit(flags, Z_bit);
+        if (bit) {
+            ByteUtils.setBit(flags, Z_bit);
+        } else {
+            ByteUtils.unsetBit(flags, Z_bit);
+        }
     }
 
     public void setN(boolean bit) {
-        if (bit) ByteUtils.setBit(flags, N_bit);
-        else ByteUtils.unsetBit(flags, N_bit);
+        if (bit) {
+            ByteUtils.setBit(flags, N_bit);
+        } else {
+            ByteUtils.unsetBit(flags, N_bit);
+        }
     }
 
     public void setH(boolean bit) {
-        if (bit) ByteUtils.setBit(flags, H_bit);
-        else ByteUtils.unsetBit(flags, H_bit);
+        if (bit) {
+            ByteUtils.setBit(flags, H_bit);
+        } else {
+            ByteUtils.unsetBit(flags, H_bit);
+        }
     }
 
     public void setC(boolean bit) {
-        if (bit) ByteUtils.setBit(flags, C_bit);
-        else ByteUtils.unsetBit(flags, C_bit);
+        if (bit) {
+            ByteUtils.setBit(flags, C_bit);
+        } else {
+            ByteUtils.unsetBit(flags, C_bit);
+        }
     }
 
 }

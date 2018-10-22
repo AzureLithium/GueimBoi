@@ -1,11 +1,18 @@
 package com.azurelithium.gueimboi.cpu;
 
+import com.azurelithium.gueimboi.memory.MMU;
+
 public class InstructionBuilder {
 
     private Instruction instruction;
-    
-    public InstructionBuilder(int opcode, String mnemonic, Registers registers) {
-        instruction = new Instruction(opcode, mnemonic, registers);
+
+    public InstructionBuilder(int opcode, String mnemonic, Registers registers, MMU mmu) {
+        instruction = new Instruction(opcode, mnemonic, registers, mmu);
+    }
+
+    public InstructionBuilder decodeOperand(Operand operand) {
+        instruction.setInstructionOperand(operand);
+        return this;
     }
 
     public InstructionBuilder load(Operand operand) {
@@ -21,5 +28,5 @@ public class InstructionBuilder {
     public Instruction build() {
         return instruction;
     }
-    
+
 }

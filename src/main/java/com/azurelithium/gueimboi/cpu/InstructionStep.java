@@ -3,15 +3,17 @@ package com.azurelithium.gueimboi.cpu;
 import com.azurelithium.gueimboi.cpu.Instruction.InstructionContext;
 
 public abstract class InstructionStep {
-    
+
     protected InstructionContext instructionContext;
+
     public void setInstructionContext(InstructionContext _instructionContext) {
         instructionContext = _instructionContext;
     }
 
-    public abstract void execute() ;
+    public abstract void execute();
 
 }
+
 
 class Load extends InstructionStep {
 
@@ -27,12 +29,13 @@ class Load extends InstructionStep {
 
 }
 
+
 class Store extends InstructionStep {
 
     private Operand operand;
 
     public Store(Operand _operand) {
-        operand = _operand;        
+        operand = _operand;
     }
 
     public void execute() {

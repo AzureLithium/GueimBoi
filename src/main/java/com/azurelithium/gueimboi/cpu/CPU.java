@@ -1,7 +1,7 @@
 package com.azurelithium.gueimboi.cpu;
 
 import com.azurelithium.gueimboi.memory.MMU;
-
+import com.azurelithium.gueimboi.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,19 +15,46 @@ public class CPU {
     private MMU mmu;
 
     public CPU(MMU _mmu) {
-        registers = new Registers();
-        isa = new ISA(registers);
         mmu = _mmu;
+        registers = new Registers();
+        isa = new ISA(registers, mmu);
     }
 
-    public void runInstruction() {
-        Instruction instruction = isa.getInstruction(0x7F);
+    public void run() {
+        Instruction instruction = fetchInstruction();
+        decodeInstruction(instruction);
+        executeInstruction(instruction);
+    }
+
+    private Instruction fetchInstruction() {
+        int instructionAddress = registers.getPC();
+
+        int opcode = mmu.readByte(registers.getPC());
+        registers.incrementPC(Byte.BYTES);
+
+        if (opcode == 0xCB) {
+            opcode = mmu.readByte(registers.getPC());
+            registers.incrementPC(Byte.BYTES);
+        }
+
+        Instruction instruction = isa.getInstruction(opcode);
         if (instruction == null) {
-            logger.error("Unrecognized operation, aborting GueimBoi...");
+            logger.error("Operation {} not recognized, aborting GueimBoi...",
+                    StringUtils.toHex(opcode));
             System.exit(1);
         }
-        instruction.execute();
-        logger.info("Exiting GueimBoi.");
-        System.exit(0);        
+
+        logger.debug("Fetched instruction {} : {} at address {}.", StringUtils.toHex(opcode),
+                instruction.getMnemonic(), StringUtils.toHex(instructionAddress));
+        return instruction;
     }
+
+    private void decodeInstruction(Instruction instruction) {
+        instruction.decode();
+    }
+
+    private void executeInstruction(Instruction instruction) {
+        instruction.execute();
+    }
+
 }

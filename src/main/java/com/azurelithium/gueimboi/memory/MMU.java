@@ -1,26 +1,37 @@
 package com.azurelithium.gueimboi.memory;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 public class MMU {
 
     private RAM ram;
+    private static final boolean LITTLE_ENDIAN = true;
 
     public MMU() {
         ram = new RAM();
+        ram.writeBytes(0x0000, ROM.GAMEBOY_ROM);
     }
 
-    int readByte(int address) {
+    public int readByte(int address) {
         return ram.readByte(address);
     }
 
-    void writeByte(int address, byte value) {
+    public void writeByte(int address, int value) {
         ram.writeByte(address, value);
     }
 
-    int[] readBytes(int address, int count) {
-        return ram.readBytes(address, count);
+    public int[] readBytes(int address, int count) {
+        int[] bytes = ram.readBytes(address, count);
+        if (LITTLE_ENDIAN) {
+            ArrayUtils.reverse(bytes);
+        }
+        return bytes;
     }
 
-    void writeBytes(int address, int[] bytes) {
+    public void writeBytes(int address, int[] bytes) {
+        if (LITTLE_ENDIAN) {
+            ArrayUtils.reverse(bytes);
+        }
         ram.writeBytes(address, bytes);
     }
 

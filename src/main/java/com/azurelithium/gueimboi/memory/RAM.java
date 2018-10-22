@@ -13,7 +13,7 @@ class RAM {
         return ram[address];
     }
 
-    void writeByte(int address, byte value) {
+    void writeByte(int address, int value) {
         ram[address] = value;
     }
 

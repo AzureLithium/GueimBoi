@@ -5,8 +5,8 @@ import static com.google.common.base.Preconditions.checkPositionIndex;
 public class ByteUtils {
 
     /**
-    * Calculation
-    */
+     * Calculation
+     */
 
     public static boolean isNegative(int value) {
         return value >> Integer.SIZE - 1 != 0;
@@ -25,8 +25,8 @@ public class ByteUtils {
     }
 
     /**
-    * Extraction
-    */
+     * Extraction
+     */
 
     public static boolean getBit(int intValue, int position) {
         checkIntPosition("intValue", position);
@@ -41,80 +41,83 @@ public class ByteUtils {
         return (value & 0x1) != 0;
     }
 
-    public static byte getMSB(short value) {
-        return (byte)(value >> 8);
+    public static int getMSB(short value) {
+        return (byte) (value >> 8);
     }
 
-    public static byte getMSB(int value) {
-        return (byte)(value >> 24);
+    public static int getMSB(int value) {
+        return (byte) (value >> 24);
     }
 
-    public static byte getLSB(int value) {
-        return (byte)value;
+    public static int getLSB(int value) {
+        return (byte) value;
     }
 
-    public static short getMSW(int value) {
-        return (short)(value >> 16);
+    public static int getMSW(int value) {
+        return (short) (value >> 16);
     }
 
-    public static short getLSW(int value) {
-        return (short)value;
+    public static int getLSW(int value) {
+        return (short) value;
     }
 
-    public static byte toByte(int value) {
-        return (byte)value;
+    public static int toByte(int value) {
+        return (byte) value;
     }
 
-    public static short toWord(int value) {
-        return (short)value;
-    }
-
-    /**
-    * Composition
-    */
-
-    public static short toWord(byte MSB, byte LSB) {        
-        return (short)(MSB << 8 | LSB & 0xFF);
+    public static int toWord(int value) {
+        return (short) value;
     }
 
     /**
-    * Modification
-    */
+     * Composition
+     */
 
-    public static byte setBit(byte byteValue, int position) {
+    public static int toWord(int MSB, int LSB) {
+        return (MSB << 8 | LSB & 0xFF);
+    }
+
+    /**
+     * Modification
+     */
+
+    public static int setBit(byte byteValue, int position) {
         checkBytePosition("byteValue", position);
-        return (byte)(((1 << position) | byteValue) & 0xFF);
+        return (int) (((1 << position) | byteValue) & 0xFF);
     }
 
-    public static short setBit(short wordValue, int position) {
+    public static int setBit(short wordValue, int position) {
         checkWordPosition("wordValue", position);
-        return (short)(((1 << position) | wordValue) & 0xFFFF);
+        return (int) (((1 << position) | wordValue) & 0xFFFF);
     }
 
-    public static byte unsetBit(byte byteValue, int position) {
+    public static int unsetBit(byte byteValue, int position) {
         checkBytePosition("byteValue", position);
-        return (byte)(~(1 << position) & byteValue & 0xFF);
+        return (int) (~(1 << position) & byteValue & 0xFF);
     }
 
-    public static short unsetBit(short wordValue, int position) {
+    public static int unsetBit(short wordValue, int position) {
         checkWordPosition("wordValue", position);
-        return (short)(~(1 << position) & wordValue & 0xFFFF);
+        return (int) (~(1 << position) & wordValue & 0xFFFF);
     }
 
     /**
-    * Validation
-    */
+     * Validation
+     */
 
     private static void checkBytePosition(String argumentName, int position) {
-        checkPositionIndex(position, Byte.SIZE - 1, "Position " + position + "is inaccessible in " + argumentName);
+        checkPositionIndex(position, Byte.SIZE - 1,
+                "Position " + position + "is inaccessible in " + argumentName);
     }
 
     private static void checkWordPosition(String argumentName, int position) {
-        checkPositionIndex(position, Short.SIZE - 1, "Position " + position + "is inaccessible in " + argumentName);
+        checkPositionIndex(position, Short.SIZE - 1,
+                "Position " + position + "is inaccessible in " + argumentName);
     }
 
     private static void checkIntPosition(String argumentName, int position) {
-        checkPositionIndex(position, Integer.SIZE - 1, "Position " + position + "is inaccessible in " + argumentName);
-    }    
+        checkPositionIndex(position, Integer.SIZE - 1,
+                "Position " + position + "is inaccessible in " + argumentName);
+    }
 
 }

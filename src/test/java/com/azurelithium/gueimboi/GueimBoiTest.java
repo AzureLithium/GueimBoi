@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GueimBoiTest {
 
-    final static Logger logger = LoggerFactory.getLogger(GueimBoi.class);
+    final static Logger logger = LoggerFactory.getLogger(GueimBoiTest.class);
 
     /**
      * Rigorous Test.

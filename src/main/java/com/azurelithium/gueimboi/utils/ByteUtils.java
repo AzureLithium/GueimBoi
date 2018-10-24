@@ -2,7 +2,7 @@ package com.azurelithium.gueimboi.utils;
 
 import static com.google.common.base.Preconditions.checkPositionIndex;
 
-public class ByteUtils {
+public final class ByteUtils {
 
     /**
      * Calculation
@@ -81,24 +81,24 @@ public class ByteUtils {
      * Modification
      */
 
-    public static int setBit(byte byteValue, int position) {
+    public static byte setBit(byte byteValue, int position) {
         checkBytePosition("byteValue", position);
-        return (int) (((1 << position) | byteValue) & 0xFF);
+        return (byte)(((1 << position) | byteValue) & 0xFF);
     }
 
-    public static int setBit(short wordValue, int position) {
+    public static short setBit(short wordValue, int position) {
         checkWordPosition("wordValue", position);
-        return (int) (((1 << position) | wordValue) & 0xFFFF);
+        return (short) (((1 << position) | wordValue) & 0xFFFF);
     }
 
-    public static int unsetBit(byte byteValue, int position) {
+    public static byte unsetBit(byte byteValue, int position) {
         checkBytePosition("byteValue", position);
-        return (int) (~(1 << position) & byteValue & 0xFF);
+        return (byte) (~(1 << position) & byteValue & 0xFF);
     }
 
-    public static int unsetBit(short wordValue, int position) {
+    public static short unsetBit(short wordValue, int position) {
         checkWordPosition("wordValue", position);
-        return (int) (~(1 << position) & wordValue & 0xFFFF);
+        return (short) (~(1 << position) & wordValue & 0xFFFF);
     }
 
     /**

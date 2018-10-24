@@ -1,130 +1,131 @@
 package com.azurelithium.gueimboi.cpu;
 
-import com.azurelithium.gueimboi.cpu.Instruction.InstructionContext;
 import com.azurelithium.gueimboi.utils.ByteUtils;
 import com.azurelithium.gueimboi.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public enum Operand {
+enum Operand {
 
     A {
 
-        void read(InstructionContext instructionContext) {
-            instructionContext.data = new int[] {instructionContext.registers.getA()};
-            logger.trace("Step: Reading data {} from register {}.", instructionContext.printData(),
-                    this.name());
+        void read(ExecutionContext executionContext) {
+            executionContext.data = executionContext.registers.getA();
+            logReadFromRegister(executionContext.printData());
         }
 
-        void write(InstructionContext instructionContext) {
-            instructionContext.registers.setA(ByteUtils.toByte(instructionContext.data[0]));
-            logger.trace("Step: Writing data {} to register {}.", instructionContext.printData(),
-                    this.name());
+        void write(ExecutionContext executionContext) {
+            executionContext.registers.setA(executionContext.data);
+            logWriteToRegister(executionContext.printData());
         }
 
     },
 
     SP {
 
-        void read(InstructionContext instructionContext) {
-            int SP = instructionContext.registers.getSP();
-            instructionContext.data = new int[] {ByteUtils.getMSB(SP), ByteUtils.getLSB(SP)};
-            logger.trace("Step: Reading data {} from register {}.", instructionContext.printData(),
-                    this.name());
+        void read(ExecutionContext executionContext) {
+            executionContext.data = executionContext.registers.getSP();
+            logReadFromRegister(executionContext.printData());
         }
 
-        void write(InstructionContext instructionContext) {
-            instructionContext.registers.setSP(
-                    ByteUtils.toWord(instructionContext.data[0], instructionContext.data[1]));
-            logger.trace("Step: Writing data {} to register {}.", instructionContext.printData(),
-                    this.name());
+        void write(ExecutionContext executionContext) {
+            executionContext.registers.setSP(executionContext.data);
+            logWriteToRegister(executionContext.printData());
         }
 
     },
 
     BYTE {
 
-        void decode(InstructionContext instructionContext) {
-            int address = instructionContext.registers.getPC();
-            instructionContext.data = new int[] {instructionContext.mmu.readByte(address)};
-            instructionContext.registers.incrementPC(Byte.BYTES);
+        void decode(ExecutionContext executionContext) {
+            int address = executionContext.registers.getPC();
+            executionContext.data = executionContext.MMU.readByte(address);
+            executionContext.registers.incrementPC(Byte.BYTES);
             logger.trace("Decoding: Fetched byte immediate operand {} from address {}.",
-                    instructionContext.printData(), StringUtils.toHex(address));
+                    executionContext.printData(), StringUtils.toHex(address));
         }
 
     },
 
     WORD {
 
-        void decode(InstructionContext instructionContext) {
-            int address = instructionContext.registers.getPC();
-            instructionContext.data = instructionContext.mmu.readBytes(address, Short.BYTES);
-            instructionContext.registers.incrementPC(Short.BYTES);
+        void decode(ExecutionContext executionContext) {
+            int address = executionContext.registers.getPC();
+            int[] bytes = executionContext.MMU.readBytes(address, Short.BYTES);
+            executionContext.data = ByteUtils.toWord(bytes[0], bytes[1]);
+            executionContext.registers.incrementPC(Short.BYTES);
             logger.trace("Decoding: Fetched word immediate operand {} from address {}.",
-                    instructionContext.printData(), StringUtils.toHex(address));
+                    executionContext.printData(), StringUtils.toHex(address));
         }
 
     },
 
     BYTE_ADDRESS {
 
-        void decode(InstructionContext instructionContext) {
-            int address = instructionContext.registers.getPC();
-            instructionContext.dataAddress = instructionContext.mmu.readByte(address);
-            instructionContext.registers.incrementPC(Byte.BYTES);
+        void decode(ExecutionContext executionContext) {
+            int address = executionContext.registers.getPC();
+            executionContext.dataAddress = executionContext.MMU.readByte(address);
+            executionContext.registers.incrementPC(Byte.BYTES);
             logger.trace("Decoding: Fetched byte address operand {} from address {}.",
-                    instructionContext.printDataAddress(), StringUtils.toHex(address));
+                    executionContext.printDataAddress(), StringUtils.toHex(address));
         }
 
-        void read(InstructionContext instructionContext) {
-            instructionContext.data =
-                    new int[] {instructionContext.mmu.readByte(instructionContext.dataAddress)};
+        void read(ExecutionContext executionContext) {
+            executionContext.data = executionContext.MMU.readByte(executionContext.dataAddress);
             logger.trace("Reading: Read byte operand {} from address {}.",
-                    instructionContext.printData(), instructionContext.printDataAddress());
+                    executionContext.printData(), executionContext.printDataAddress());
         }
 
-        void write(InstructionContext instructionContext) {
-            instructionContext.mmu.writeByte(instructionContext.dataAddress,
-                    instructionContext.data[0]);
-            logger.trace("Step: Writing byte data {} to address {}.",
-                    instructionContext.printData(), instructionContext.printDataAddress());
+        void write(ExecutionContext executionContext) {
+            executionContext.MMU.writeByte(executionContext.dataAddress, executionContext.data);
+            logger.trace("Step: Writing byte data {} to address {}.", executionContext.printData(),
+                    executionContext.printDataAddress());
         }
 
     },
 
     WORD_ADDRESS {
 
-        void decode(InstructionContext instructionContext) {
-            int address = instructionContext.registers.getPC();
-            int[] bytes = instructionContext.mmu.readBytes(address, Short.BYTES);
-            instructionContext.dataAddress = ByteUtils.toWord(bytes[0], bytes[1]);
-            instructionContext.registers.incrementPC(Short.BYTES);
+        void decode(ExecutionContext executionContext) {
+            int address = executionContext.registers.getPC();
+            int[] bytes = executionContext.MMU.readBytes(address, Short.BYTES);
+            executionContext.dataAddress = ByteUtils.toWord(bytes[0], bytes[1]);
+            executionContext.registers.incrementPC(Short.BYTES);
             logger.trace("Decoding: Fetched word address operand {} from address {}.",
-                    instructionContext.printDataAddress(), StringUtils.toHex(address));
+                    executionContext.printDataAddress(), StringUtils.toHex(address));
         }
 
-        void read(InstructionContext instructionContext) {
-            instructionContext.data =
-                    instructionContext.mmu.readBytes(instructionContext.dataAddress, Short.BYTES);
+        void read(ExecutionContext executionContext) {
+            int[] bytes = executionContext.MMU.readBytes(executionContext.dataAddress, Short.BYTES);
+            executionContext.data = ByteUtils.toWord(bytes[0], bytes[1]);
             logger.trace("Reading: Read word operand {} from address {}.",
-                    instructionContext.printData(), instructionContext.printDataAddress());
+                    executionContext.printData(), executionContext.printDataAddress());
         }
 
-        void write(InstructionContext instructionContext) {
-            instructionContext.mmu.writeBytes(instructionContext.dataAddress,
-                    instructionContext.data);
-            logger.trace("Step: Writing word data {} to address {}.",
-                    instructionContext.printData(), instructionContext.printDataAddress());
+        void write(ExecutionContext executionContext) {
+            int[] bytes = new int[] {ByteUtils.getMSB(executionContext.data),
+                    ByteUtils.getLSB(executionContext.data)};
+            executionContext.MMU.writeBytes(executionContext.dataAddress, bytes);
+            logger.trace("Step: Writing word data {} to address {}.", executionContext.printData(),
+                    executionContext.printDataAddress());
         }
 
     };
 
     final Logger logger = LoggerFactory.getLogger(Operand.class);
 
-    void decode(InstructionContext instructionContext) {};
+    void decode(ExecutionContext executionContext) {};
 
-    void read(InstructionContext instructionContext) {};
+    void read(ExecutionContext executionContext) {};
 
-    void write(InstructionContext instructionContext) {};
+    void write(ExecutionContext executionContext) {};
+
+    void logReadFromRegister(String data) {
+        logger.trace("Load: Reading data {} from register {}.", data, this.name());
+    }
+
+    void logWriteToRegister(String data) {
+        logger.trace("Store: Writing data {} to register {}.", data, this.name());
+    }
 
 }

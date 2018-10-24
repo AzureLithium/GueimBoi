@@ -11,18 +11,29 @@ import org.slf4j.LoggerFactory;
 public class GueimBoi {
 
     final static Logger logger = LoggerFactory.getLogger(GueimBoi.class);
+    static CPU CPU;
+    static MMU MMU;
 
     /**
      * Emulator entry point.
      * 
      * @param args The arguments of the program.
      */
-    public static void main(String[] args) {
-        logger.info("Starting GueimBoi.");
-        MMU mmu = new MMU();
-        CPU cpu = new CPU(mmu);
+    public static void main(String[] args) {  
+        initialize();
+        start();
+    }
+
+    private static void initialize() {
+        logger.info("Initializing GueimBoi components.");
+        MMU = new MMU();
+        CPU = new CPU(MMU);
+    }
+
+    private static void start() {
+        logger.info("Starting GueimBoi."); 
         while (true) {
-            cpu.run();
+            CPU.run();
         }
     }
 }

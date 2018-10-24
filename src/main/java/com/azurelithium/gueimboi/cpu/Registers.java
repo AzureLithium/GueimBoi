@@ -2,7 +2,7 @@ package com.azurelithium.gueimboi.cpu;
 
 import com.azurelithium.gueimboi.utils.ByteUtils;
 
-public class Registers {
+class Registers {
 
     private int A;
     private int B;
@@ -128,6 +128,10 @@ public class Registers {
 
     void incrementPC(int _PC) {
         PC += _PC;
+    }
+
+    Flags getFlags() {
+        return flags;
     }
 
 }

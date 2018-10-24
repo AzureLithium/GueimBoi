@@ -1,31 +1,55 @@
 package com.azurelithium.gueimboi.cpu;
 
-import com.azurelithium.gueimboi.memory.MMU;
-
-public class InstructionBuilder {
+class InstructionBuilder {
 
     private Instruction instruction;
 
-    public InstructionBuilder(int opcode, String mnemonic, Registers registers, MMU mmu) {
-        instruction = new Instruction(opcode, mnemonic, registers, mmu);
+    /**
+     * Create instruction
+     */
+
+    InstructionBuilder instruction(int opcode, String mnemonic) {
+        instruction = new Instruction(opcode, mnemonic);
+        return this;
     }
 
-    public InstructionBuilder decodeOperand(Operand operand) {
+    /**
+     * Decode operand command
+     */
+
+    InstructionBuilder decodeOperand(Operand operand) {
         instruction.setInstructionOperand(operand);
         return this;
     }
 
-    public InstructionBuilder load(Operand operand) {
+    /**
+     * Loading and Storing commands
+     */
+
+    InstructionBuilder load(Operand operand) {
         instruction.addStep(new Load(operand));
         return this;
     }
 
-    public InstructionBuilder store(Operand operand) {
+    InstructionBuilder store(Operand operand) {
         instruction.addStep(new Store(operand));
         return this;
     }
 
-    public Instruction build() {
+    /**
+     * Arithmetic/Logical commands
+     */
+
+    InstructionBuilder XOR() {
+        instruction.addStep(new XOR());
+        return this;
+    }
+
+    /**
+     * Build instruction
+     */
+
+    Instruction build() {
         return instruction;
     }
 

@@ -4,8 +4,9 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class MMU {
 
-    private RAM ram;
     private static final boolean LITTLE_ENDIAN = true;
+
+    private RAM ram;    
 
     public MMU() {
         ram = new RAM();

@@ -1,6 +1,6 @@
 package com.azurelithium.gueimboi.utils;
 
-public class StringUtils {
+public final class StringUtils {
 
     public static String toHex(int number) {
         return "0x" + Integer.toString(number, 16).toUpperCase();

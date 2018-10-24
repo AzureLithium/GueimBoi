@@ -2,7 +2,7 @@ package com.azurelithium.gueimboi.cpu;
 
 import com.azurelithium.gueimboi.utils.ByteUtils;
 
-public class Flags {
+class Flags {
 
     private byte flags; // Layout => ZNHC---- : Z = Zero flag, N = Add/Sub flag, H = Half-carry
                         // flag, C = Carry flag
@@ -12,11 +12,11 @@ public class Flags {
     private static final int C_bit = 4;
 
 
-    public Flags() {
+    Flags() {
         flags = 0b00000000;
     }
 
-    public Flags(byte _flags) {
+    Flags(byte _flags) {
         flags = _flags;
     }
 
@@ -24,84 +24,89 @@ public class Flags {
         return flags;
     }
 
-    public boolean isZ() {
+    boolean isZ() {
         return ByteUtils.getBit(flags, Z_bit);
     }
 
-    public boolean isN() {
+    boolean isN() {
         return ByteUtils.getBit(flags, N_bit);
     }
 
-    public boolean isH() {
+    boolean isH() {
         return ByteUtils.getBit(flags, H_bit);
     }
 
-    public boolean isC() {
+    boolean isC() {
         return ByteUtils.getBit(flags, C_bit);
     }
 
-    public void setZ() {
-        ByteUtils.setBit(flags, Z_bit);
+    void setZ() {
+        flags = ByteUtils.setBit(flags, Z_bit);
     }
 
-    public void setN() {
-        ByteUtils.setBit(flags, N_bit);
+    void setN() {
+        flags = ByteUtils.setBit(flags, N_bit);
     }
 
-    public void setH() {
-        ByteUtils.setBit(flags, H_bit);
+    void setH() {
+        flags = ByteUtils.setBit(flags, H_bit);
     }
 
-    public void setC() {
-        ByteUtils.setBit(flags, C_bit);
+    void setC() {
+        flags = ByteUtils.setBit(flags, C_bit);
     }
 
-    public void unsetZ() {
-        ByteUtils.unsetBit(flags, Z_bit);
+    void unsetZ() {
+        flags = ByteUtils.unsetBit(flags, Z_bit);
     }
 
-    public void unsetN() {
-        ByteUtils.unsetBit(flags, N_bit);
+    void unsetN() {
+        flags = ByteUtils.unsetBit(flags, N_bit);
     }
 
-    public void unsetH() {
-        ByteUtils.unsetBit(flags, H_bit);
+    void unsetH() {
+        flags = ByteUtils.unsetBit(flags, H_bit);
     }
 
-    public void unsetC() {
-        ByteUtils.unsetBit(flags, C_bit);
+    void unsetC() {
+        flags = ByteUtils.unsetBit(flags, C_bit);
     }
 
-    public void setZ(boolean bit) {
+    void setZ(boolean bit) {
         if (bit) {
-            ByteUtils.setBit(flags, Z_bit);
+            flags = ByteUtils.setBit(flags, Z_bit);
         } else {
-            ByteUtils.unsetBit(flags, Z_bit);
+            flags = ByteUtils.unsetBit(flags, Z_bit);
         }
     }
 
-    public void setN(boolean bit) {
+    void setN(boolean bit) {
         if (bit) {
-            ByteUtils.setBit(flags, N_bit);
+            flags = ByteUtils.setBit(flags, N_bit);
         } else {
-            ByteUtils.unsetBit(flags, N_bit);
+            flags = ByteUtils.unsetBit(flags, N_bit);
         }
     }
 
-    public void setH(boolean bit) {
+    void setH(boolean bit) {
         if (bit) {
-            ByteUtils.setBit(flags, H_bit);
+            flags = ByteUtils.setBit(flags, H_bit);
         } else {
-            ByteUtils.unsetBit(flags, H_bit);
+            flags = ByteUtils.unsetBit(flags, H_bit);
         }
     }
 
-    public void setC(boolean bit) {
+    void setC(boolean bit) {
         if (bit) {
-            ByteUtils.setBit(flags, C_bit);
+            flags = ByteUtils.setBit(flags, C_bit);
         } else {
-            ByteUtils.unsetBit(flags, C_bit);
+            flags = ByteUtils.unsetBit(flags, C_bit);
         }
+    }
+
+    public String toString() {
+        return "Z:" + (isZ() ? "1" : "0") + " N:" + (isN() ? "1" : "0") + " H:"
+                + (isH() ? "1" : "0") + " C:" + (isC() ? "1" : "0");
     }
 
 }

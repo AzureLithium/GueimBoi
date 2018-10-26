@@ -79,6 +79,11 @@ class Registers {
         return ByteUtils.toWord(A, flags.getFlags());
     }
 
+    void setAF(int _AF) {
+        A = ByteUtils.getMSB(_AF);
+        flags = new Flags(ByteUtils.getLSB(_AF));
+    }
+
     int getBC() {
         return ByteUtils.toWord(B, C);
     }
@@ -106,6 +111,10 @@ class Registers {
         L = ByteUtils.getLSB(_HL);
     }
 
+    void incrementHL(int increment) {
+        setHL(getHL() + increment);
+    }
+
     int getSP() {
         return SP;
     }
@@ -114,8 +123,8 @@ class Registers {
         SP = _SP;
     }
 
-    void incrementSP(int _SP) {
-        SP += _SP;
+    void incrementSP(int increment) {
+        SP += increment;
     }
 
     int getPC() {
@@ -126,8 +135,8 @@ class Registers {
         PC = _PC;
     }
 
-    void incrementPC(int _PC) {
-        PC += _PC;
+    void incrementPC(int increment) {
+        PC += increment;
     }
 
     Flags getFlags() {

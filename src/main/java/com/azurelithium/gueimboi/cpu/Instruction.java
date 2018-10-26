@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory;
 
 class Instruction {
 
-    final Logger logger = LoggerFactory.getLogger(Instruction.class);
+    final Logger logger = LoggerFactory.getLogger(getClass());
 
     private int opcode;
     private String mnemonic;
-    private Operand instructionOperand;
+    private Decodable instructionOperand;
     private List<InstructionStep> instructionSteps;
 
     Instruction(int _opcode, String _mnemonic) {
@@ -25,7 +25,7 @@ class Instruction {
         return mnemonic;
     }
 
-    void setInstructionOperand(Operand operand) {
+    void setInstructionOperand(Decodable operand) {
         instructionOperand = operand;
     }
 
@@ -40,11 +40,16 @@ class Instruction {
     }
 
     void execute(ExecutionContext executionContext) {
-        logger.debug("Executing instruction {} : {}", StringUtils.toHex(opcode),
+        logger.trace("Executing instruction {} : {}", StringUtils.toHex(opcode),
                 mnemonic);
         for (InstructionStep instructionStep : instructionSteps) {
-            instructionStep.execute(executionContext);
-        }
+            if (executionContext.executeNextStep) {
+                instructionStep.execute(executionContext);
+            } else {
+                executionContext.executeNextStep = true;            
+                break;
+            }            
+        }        
     }
 
 }

@@ -5,26 +5,6 @@ import static com.google.common.base.Preconditions.checkPositionIndex;
 public final class ByteUtils {
 
     /**
-     * Calculation
-     */
-
-    public static boolean isNegative(int value) {
-        return value >> Integer.SIZE - 1 != 0;
-    }
-
-    public static boolean isPositive(int value) {
-        return !isNegative(value);
-    }
-
-    public static int abs(byte byteValue) {
-        return isNegative(byteValue) ? 0x100 - byteValue & 0xFF : byteValue;
-    }
-
-    public static int abs(short wordValue) {
-        return isNegative(wordValue) ? 0x10000 - wordValue & 0xFFFF : wordValue;
-    }
-
-    /**
      * Extraction
      */
 
@@ -33,40 +13,12 @@ public final class ByteUtils {
         return (intValue & (1 << position)) != 0;
     }
 
-    public static boolean getMSb(int value) {
-        return isNegative(value);
-    }
-
-    public static boolean getLSb(int value) {
-        return (value & 0x1) != 0;
-    }
-
-    public static int getMSB(short value) {
-        return (byte) (value >> 8);
-    }
-
     public static int getMSB(int value) {
-        return (byte) (value >> 24);
+        return (value >> 8) & 0xFF;
     }
 
     public static int getLSB(int value) {
-        return (byte) value;
-    }
-
-    public static int getMSW(int value) {
-        return (short) (value >> 16);
-    }
-
-    public static int getLSW(int value) {
-        return (short) value;
-    }
-
-    public static int toByte(int value) {
-        return (byte) value;
-    }
-
-    public static int toWord(int value) {
-        return (short) value;
+        return value & 0xFF;
     }
 
     /**
@@ -81,39 +33,19 @@ public final class ByteUtils {
      * Modification
      */
 
-    public static byte setBit(byte byteValue, int position) {
-        checkBytePosition("byteValue", position);
-        return (byte)(((1 << position) | byteValue) & 0xFF);
+    public static int setBit(int value, int position) {
+        checkIntPosition("intValue", position);
+        return (((1 << position) | value) & 0xFFFFFFFF);
     }
 
-    public static short setBit(short wordValue, int position) {
-        checkWordPosition("wordValue", position);
-        return (short) (((1 << position) | wordValue) & 0xFFFF);
-    }
-
-    public static byte unsetBit(byte byteValue, int position) {
-        checkBytePosition("byteValue", position);
-        return (byte) (~(1 << position) & byteValue & 0xFF);
-    }
-
-    public static short unsetBit(short wordValue, int position) {
-        checkWordPosition("wordValue", position);
-        return (short) (~(1 << position) & wordValue & 0xFFFF);
+    public static int unsetBit(int value, int position) {
+        checkIntPosition("intValue", position);
+        return (~(1 << position) & value & 0xFFFFFFFF);
     }
 
     /**
      * Validation
      */
-
-    private static void checkBytePosition(String argumentName, int position) {
-        checkPositionIndex(position, Byte.SIZE - 1,
-                "Position " + position + "is inaccessible in " + argumentName);
-    }
-
-    private static void checkWordPosition(String argumentName, int position) {
-        checkPositionIndex(position, Short.SIZE - 1,
-                "Position " + position + "is inaccessible in " + argumentName);
-    }
 
     private static void checkIntPosition(String argumentName, int position) {
         checkPositionIndex(position, Integer.SIZE - 1,

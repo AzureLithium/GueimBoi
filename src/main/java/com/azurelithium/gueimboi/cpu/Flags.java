@@ -4,7 +4,7 @@ import com.azurelithium.gueimboi.utils.ByteUtils;
 
 class Flags {
 
-    private byte flags; // Layout => ZNHC---- : Z = Zero flag, N = Add/Sub flag, H = Half-carry
+    private int flags; // Layout => ZNHC---- : Z = Zero flag, N = Add/Sub flag, H = Half-carry
                         // flag, C = Carry flag
     private static final int Z_bit = 7;
     private static final int N_bit = 6;
@@ -16,11 +16,11 @@ class Flags {
         flags = 0b00000000;
     }
 
-    Flags(byte _flags) {
+    Flags(int _flags) {
         flags = _flags;
     }
 
-    byte getFlags() {
+    int getFlags() {
         return flags;
     }
 

@@ -1,10 +1,11 @@
 package com.azurelithium.gueimboi.memory;
 
+import java.nio.ByteOrder;
 import org.apache.commons.lang3.ArrayUtils;
 
 public class MMU {
 
-    private static final boolean LITTLE_ENDIAN = true;
+    private static final ByteOrder BYTE_ORDER = ByteOrder.LITTLE_ENDIAN;
 
     private RAM ram;    
 
@@ -23,14 +24,14 @@ public class MMU {
 
     public int[] readBytes(int address, int count) {
         int[] bytes = ram.readBytes(address, count);
-        if (LITTLE_ENDIAN) {
+        if (BYTE_ORDER == ByteOrder.LITTLE_ENDIAN) {
             ArrayUtils.reverse(bytes);
         }
         return bytes;
     }
 
     public void writeBytes(int address, int[] bytes) {
-        if (LITTLE_ENDIAN) {
+        if (BYTE_ORDER == ByteOrder.LITTLE_ENDIAN) {
             ArrayUtils.reverse(bytes);
         }
         ram.writeBytes(address, bytes);

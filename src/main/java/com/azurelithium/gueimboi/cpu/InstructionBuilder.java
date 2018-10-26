@@ -17,7 +17,7 @@ class InstructionBuilder {
      * Decode operand command
      */
 
-    InstructionBuilder decodeOperand(Operand operand) {
+    InstructionBuilder decodeOperand(Decodable operand) {
         instruction.setInstructionOperand(operand);
         return this;
     }
@@ -26,12 +26,17 @@ class InstructionBuilder {
      * Loading and Storing commands
      */
 
-    InstructionBuilder load(Operand operand) {
+    InstructionBuilder load(Readable operand) {
         instruction.addStep(new Load(operand));
         return this;
     }
 
-    InstructionBuilder store(Operand operand) {
+    InstructionBuilder loadSecundary(Readable operand) {
+        instruction.addStep(new LoadSecundary(operand));
+        return this;
+    }
+
+    InstructionBuilder store(Writable operand) {
         instruction.addStep(new Store(operand));
         return this;
     }
@@ -40,10 +45,49 @@ class InstructionBuilder {
      * Arithmetic/Logical commands
      */
 
+    InstructionBuilder increment() {
+        instruction.addStep(new Increment());
+        return this;
+    }
+
+    InstructionBuilder decrement() {
+        instruction.addStep(new Decrement());
+        return this;
+    }
+
     InstructionBuilder XOR() {
         instruction.addStep(new XOR());
         return this;
     }
+
+    /**
+     * Bit commands
+     */
+
+    InstructionBuilder testBit(int bit) {
+        instruction.addStep(new TestBit(bit));
+        return this;
+    }
+
+    /**
+     * Flag commands
+     */
+
+    InstructionBuilder ifNZ() {
+        instruction.addStep(new IfNZ());
+        return this;
+    }
+
+
+    /**
+     * Jump/Return commands
+     */
+
+    InstructionBuilder jumpRelative() {
+        instruction.addStep(new JumpRelative());
+        return this;
+    }
+
 
     /**
      * Build instruction

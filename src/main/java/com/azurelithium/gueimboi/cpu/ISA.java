@@ -20,10 +20,15 @@ class ISA {
         private final E E = new E();   
         private final H H = new H();
         private final L L = new L();
+        private final BC BC = new BC();
+        private final BCAddress BC_ADDRESS = new BCAddress();
+        private final DE DE = new DE();
+        private final DEAddress DE_ADDRESS = new DEAddress(); 
         private final HL HL = new HL();
         private final HLAddress HL_ADDRESS = new HLAddress(); 
         private final SP SP = new SP();               
         private final ByteImmediate BYTE_IMMEDIATE = new ByteImmediate();
+        private final ByteAddress BYTE_ADDRESS = new ByteAddress();
         private final SignedByteImmediate SIGNEDBYTE_IMMEDIATE = new SignedByteImmediate();
         private final WordImmediate WORD_IMMEDIATE = new WordImmediate();
         private final WordAddress WORD_ADDRESS = new WordAddress();      
@@ -36,15 +41,15 @@ class ISA {
                 addCallInstructions();
                 addByteLoadStoreInstructions();
                 addWordLoadStoreInstructions();
-                addByteArithmeticalLogicalInstructions();
-                addWordArithmeticalLogicalInstructions();
+                addByteALUInstructions();
+                addWordALUInstructions();
                 addRotationInstructions();
                 addShiftInstructions();
-                addBitInstructions();         
+                addBitInstructions();
         }
 
         private void addControlInstructions() {
-
+                addInstruction(0x76, instructionBuilder.instruction(0x76, "HALT")); //does nothing at the moment
         }
 
         private void addJumpInstructions() {
@@ -59,24 +64,70 @@ class ISA {
         }
 
         private void addByteLoadStoreInstructions() {
+                addInstruction(0x02, instructionBuilder.instruction(0x02, "LD (BC), A")
+                        .load(A)
+                        .store(BC_ADDRESS));
+
+                addInstruction(0x12, instructionBuilder.instruction(0x12, "LD (DE), A")
+                        .load(A)
+                        .store(DE_ADDRESS));
+
+                addInstruction(0x22, instructionBuilder.instruction(0x22, "LD (HL+), A")
+                        .load(A)
+                        .store(HL_ADDRESS)
+                        .postIncrementHL()); //no extra cycles
+
+                addInstruction(0x32, instructionBuilder.instruction(0x32, "LD (HL-), A")
+                        .load(A)
+                        .store(HL_ADDRESS)
+                        .postDecrementHL()); //no extra cycles
+                
                 int opcode = 0x06;
-                for (Writable operand : new Writable[]{B, C, D, E, H, L, HL_ADDRESS, A}) {
+                for (ReadableWritable operand : new ReadableWritable[]{B, C, D, E, H, L, HL_ADDRESS, A}) {
                         addInstruction(opcode, instructionBuilder.instruction(
                                 opcode, "LD " + ((Operand)operand).getName() + ", d8")
                                 .decodeOperand(BYTE_IMMEDIATE)
                                 .store(operand));
                         opcode += 0x8;
                 }
+                
+                addInstruction(0x0A, instructionBuilder.instruction(0x0A, "LD A, (BC)")
+                        .load(BC_ADDRESS)
+                        .store(A));
 
-                addInstruction(0x32, instructionBuilder.instruction(0x32, "LD (HL-), A")
-                        .load(A)
-                        .store(HL_ADDRESS)
-                        .load(HL)
-                        .decrement()
-                        .store(HL));
+                addInstruction(0x1A, instructionBuilder.instruction(0x1A, "LD A, (DE)")
+                        .load(DE_ADDRESS)
+                        .store(A));
 
-                addInstruction(0x7F, instructionBuilder.instruction(0x7F, "LD A, A")
+                addInstruction(0x2A, instructionBuilder.instruction(0x2A, "LD A, (HL+)")
+                        .load(HL_ADDRESS)
+                        .store(A)
+                        .postIncrementHL()); //no extra cycles
+
+                addInstruction(0x3A, instructionBuilder.instruction(0x3A, "LD A, (HL-)")
+                        .load(HL_ADDRESS)
+                        .store(A)
+                        .postDecrementHL()); //no extra cycles
+
+                opcode = 0x40;
+                for (ReadableWritable storeOperand : new ReadableWritable[]{B, C, D, E, H, L, HL_ADDRESS, A}) {
+                        for (ReadableWritable loadOperand : new ReadableWritable[]{B, C, D, E, H, L, HL_ADDRESS, A}) {
+                                addInstruction(opcode, instructionBuilder.instruction(
+                                        opcode, "LD " + ((Operand)storeOperand).getName() + ", " + ((Operand)loadOperand).getName())
+                                        .load(loadOperand)
+                                        .store(storeOperand));
+                                        opcode++;
+                        }                        
+                }
+
+                addInstruction(0xE0, instructionBuilder.instruction(0xE0, "LDH (a8), A")
+                        .decodeOperand(BYTE_ADDRESS)
                         .load(A)
+                        .store(BYTE_ADDRESS));
+
+                addInstruction(0xF0, instructionBuilder.instruction(0xF0, "LDH A, (a8)")
+                        .decodeOperand(BYTE_ADDRESS)
+                        .load(BYTE_ADDRESS)
                         .store(A));
 
                 addInstruction(0xE2, instructionBuilder.instruction(0xE2, "LD (C), A")
@@ -108,14 +159,53 @@ class ISA {
                         .store(SP));
         }
 
-        private void addByteArithmeticalLogicalInstructions() {
+        private void addByteALUInstructions() {
+                int opcode = 0x04;
+                for (ReadableWritable operand : new ReadableWritable[]{B, C, D, E, H, L, HL_ADDRESS, A}) {
+                        addInstruction(opcode, instructionBuilder.instruction(
+                                opcode, "INC " + ((Operand)operand).getName())
+                                .load(operand)
+                                .byteALUIncrement()
+                                .store(operand));
+                        opcode += 0x8;
+                }
+
+                opcode = 0x05;
+                for (ReadableWritable operand : new ReadableWritable[]{B, C, D, E, H, L, HL_ADDRESS, A}) {
+                        addInstruction(opcode, instructionBuilder.instruction(
+                                opcode, "DEC " + ((Operand)operand).getName())
+                                .load(operand)
+                                .byteALUDecrement()
+                                .store(operand));
+                        opcode += 0x8;
+                }
+
                 addInstruction(0xAF, instructionBuilder.instruction(0xAF, "XOR A")
                         .load(A)
                         .XOR()
                         .store(A));
         }
 
-        private void addWordArithmeticalLogicalInstructions() {
+        private void addWordALUInstructions() {
+                int opcode = 0x03;
+                for (ReadableWritable operand : new ReadableWritable[]{BC, DE, HL, SP}) {
+                        addInstruction(opcode, instructionBuilder.instruction(
+                                opcode, "INC " + ((Operand)operand).getName())
+                                .load(operand)
+                                .wordALUIncrement()
+                                .store(operand));
+                        opcode += 0x10;
+                }
+
+                opcode = 0x0B;
+                for (ReadableWritable operand : new ReadableWritable[]{BC, DE, HL, SP}) {
+                        addInstruction(opcode, instructionBuilder.instruction(
+                                opcode, "DEC " + ((Operand)operand).getName())
+                                .load(operand)
+                                .wordALUDecrement()
+                                .store(operand));
+                        opcode += 0x10;
+                }
 
         }
 
@@ -143,7 +233,7 @@ class ISA {
 
         private void printISA() {
                 for (Entry<Integer, Instruction> entry : instructions.entrySet()) {
-                        logger.trace("Instruction %s => %s%n", entry.getKey(), entry.getValue().getMnemonic());
+                        System.out.printf("Instruction 0x%X => %s%n", entry.getKey(), entry.getValue().getMnemonic());
                 }
         }
 }

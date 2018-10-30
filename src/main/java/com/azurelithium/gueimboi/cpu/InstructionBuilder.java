@@ -26,17 +26,12 @@ class InstructionBuilder {
      * Loading and Storing commands
      */
 
-    InstructionBuilder load(Readable operand) {
+    InstructionBuilder load(ReadableWritable operand) {
         instruction.addStep(new Load(operand));
         return this;
     }
 
-    InstructionBuilder loadSecundary(Readable operand) {
-        instruction.addStep(new LoadSecundary(operand));
-        return this;
-    }
-
-    InstructionBuilder store(Writable operand) {
+    InstructionBuilder store(ReadableWritable operand) {
         instruction.addStep(new Store(operand));
         return this;
     }
@@ -45,13 +40,33 @@ class InstructionBuilder {
      * Arithmetic/Logical commands
      */
 
-    InstructionBuilder increment() {
-        instruction.addStep(new Increment());
+    InstructionBuilder byteALUIncrement() {
+        instruction.addStep(new ByteALUIncrement());
         return this;
     }
 
-    InstructionBuilder decrement() {
-        instruction.addStep(new Decrement());
+    InstructionBuilder byteALUDecrement() {
+        instruction.addStep(new ByteALUDecrement());
+        return this;
+    }
+
+    InstructionBuilder wordALUIncrement() {
+        instruction.addStep(new WordALUIncrement());
+        return this;
+    }
+
+    InstructionBuilder wordALUDecrement() {
+        instruction.addStep(new WordALUDecrement());
+        return this;
+    }
+
+    InstructionBuilder postIncrementHL() {
+        instruction.addStep(new PostIncrementHL());
+        return this;
+    }
+
+    InstructionBuilder postDecrementHL() {
+        instruction.addStep(new PostDecrementHL());
         return this;
     }
 

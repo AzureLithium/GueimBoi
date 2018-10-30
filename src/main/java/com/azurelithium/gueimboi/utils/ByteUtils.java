@@ -26,7 +26,7 @@ public final class ByteUtils {
      */
 
     public static int toWord(int MSB, int LSB) {
-        return (MSB << 8 | LSB & 0xFF);
+        return ((MSB & 0xFF) << 8 | LSB & 0xFF);
     }
 
     /**
@@ -35,12 +35,12 @@ public final class ByteUtils {
 
     public static int setBit(int value, int position) {
         checkIntPosition("intValue", position);
-        return (((1 << position) | value) & 0xFFFFFFFF);
+        return (1 << position | value & 0xFFFF);
     }
 
-    public static int unsetBit(int value, int position) {
+    public static int resetBit(int value, int position) {
         checkIntPosition("intValue", position);
-        return (~(1 << position) & value & 0xFFFFFFFF);
+        return (~(1 << position) & value & 0xFFFF);
     }
 
     /**
@@ -48,7 +48,7 @@ public final class ByteUtils {
      */
 
     private static void checkIntPosition(String argumentName, int position) {
-        checkPositionIndex(position, Integer.SIZE - 1,
+        checkPositionIndex(position, Short.SIZE - 1,
                 "Position " + position + "is inaccessible in " + argumentName);
     }
 

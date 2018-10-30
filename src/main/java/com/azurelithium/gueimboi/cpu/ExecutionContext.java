@@ -6,46 +6,33 @@ import com.azurelithium.gueimboi.utils.StringUtils;
 
 class ExecutionContext {
 
-    private int primaryData;
-    private int secondaryData;
+    private int data;
     int dataAddress;
     boolean executeNextStep;
     Registers registers;
     MMU MMU;
     ALU ALU;
 
-    int getPrimaryData() {
-        return primaryData;
+    int getData() {
+        return data;
     }
 
-    int[] getPrimaryDataBytes() {
-        BigInteger bigInt = BigInteger.valueOf(primaryData);
-        byte[] bytes = bigInt.toByteArray();
-        int[] primaryDataBytes = new int[bytes.length];
+    int[] getDataBytes() {
+        BigInteger dataBig = BigInteger.valueOf(data);
+        byte[] bytes = dataBig.toByteArray();
+        int[] dataBytes = new int[bytes.length];
         for (int i=0 ; i<bytes.length ; i++) {
-            primaryDataBytes[i] = (int) bytes[i];
+            dataBytes[i] = (int) bytes[i];
         }
-        return primaryDataBytes;
+        return dataBytes;
     }
 
-    void setPrimaryData(int data) {
-        primaryData = data;
+    void setData(int _data) {
+        data = _data;
     }
 
-    int getSecondaryData() {
-        return secondaryData;
-    }
-
-    void setSecondaryData(int data) {
-        secondaryData = data;
-    }
-
-    String printPrimaryData() {
-        return StringUtils.toHex(primaryData);
-    }
-
-    String printSecondaryData() {
-        return StringUtils.toHex(secondaryData);
+    String printData() {
+        return StringUtils.toHex(data);
     }
 
     String printDataAddress() {

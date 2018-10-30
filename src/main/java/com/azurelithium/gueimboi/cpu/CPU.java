@@ -43,11 +43,11 @@ public class CPU {
         int instructionAddress = registers.getPC();
 
         int opcode = MMU.readByte(registers.getPC());
-        registers.incrementPC(Byte.BYTES);
+        ALU.incrementPC(executionContext, Byte.BYTES);
 
         if (opcode == 0xCB) {
             opcode = ByteUtils.toWord(opcode, MMU.readByte(registers.getPC()));
-            registers.incrementPC(Byte.BYTES);
+            ALU.incrementPC(executionContext, Byte.BYTES);
         }
 
         Instruction instruction = ISA.getInstruction(opcode);

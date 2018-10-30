@@ -4,6 +4,9 @@ import com.azurelithium.gueimboi.utils.ByteUtils;
 
 class Registers {
 
+    private final int BYTE_MASK = 0xFF;
+    private final int WORD_MASK = 0xFFFF;
+
     private int A;
     private int B;
     private int C;
@@ -24,7 +27,7 @@ class Registers {
     }
 
     void setA(int _A) {
-        A = _A;
+        A = _A & BYTE_MASK;
     }
 
     int getB() {
@@ -32,7 +35,7 @@ class Registers {
     }
 
     void setB(int _B) {
-        B = _B;
+        B = _B & BYTE_MASK;
     }
 
     int getC() {
@@ -40,7 +43,7 @@ class Registers {
     }
 
     void setC(int _C) {
-        C = _C;
+        C = _C & BYTE_MASK;
     }
 
     int getD() {
@@ -48,7 +51,7 @@ class Registers {
     }
 
     void setD(int _D) {
-        D = _D;
+        D = _D & BYTE_MASK;
     }
 
     int getE() {
@@ -56,7 +59,7 @@ class Registers {
     }
 
     void setE(int _E) {
-        E = _E;
+        E = _E & BYTE_MASK;
     }
 
     int getH() {
@@ -64,7 +67,7 @@ class Registers {
     }
 
     void setH(int _H) {
-        H = _H;
+        H = _H & BYTE_MASK;
     }
 
     int getL() {
@@ -72,7 +75,7 @@ class Registers {
     }
 
     void setL(int _L) {
-        L = _L;
+        L = _L & BYTE_MASK;
     }
 
     int getAF() {
@@ -111,20 +114,12 @@ class Registers {
         L = ByteUtils.getLSB(_HL);
     }
 
-    void incrementHL(int increment) {
-        setHL(getHL() + increment);
-    }
-
     int getSP() {
         return SP;
     }
 
     void setSP(int _SP) {
-        SP = _SP;
-    }
-
-    void incrementSP(int increment) {
-        SP += increment;
+        SP = _SP & WORD_MASK;
     }
 
     int getPC() {
@@ -132,11 +127,7 @@ class Registers {
     }
 
     void setPC(int _PC) {
-        PC = _PC;
-    }
-
-    void incrementPC(int increment) {
-        PC += increment;
+        PC = _PC & WORD_MASK;
     }
 
     Flags getFlags() {

@@ -15,9 +15,9 @@ abstract class InstructionStep {
 
 class Load extends InstructionStep {
 
-    private Readable operand;
+    private ReadableWritable operand;
 
-    Load(Readable _operand) {
+    Load(ReadableWritable _operand) {
         operand = _operand;
     }
 
@@ -27,20 +27,7 @@ class Load extends InstructionStep {
     }
 
     void setData(ExecutionContext executionContext, int data) {
-        executionContext.setPrimaryData(data);
-    }
-
-}
-
-
-class LoadSecundary extends Load {
-
-    LoadSecundary(Readable operand) {
-        super(operand);
-    }
-
-    void setData(ExecutionContext executionContext, int data) {
-        executionContext.setSecondaryData(data);
+        executionContext.setData(data);
     }
 
 }
@@ -48,9 +35,9 @@ class LoadSecundary extends Load {
 
 class Store extends InstructionStep {
 
-    private Writable operand;
+    private ReadableWritable operand;
 
-    Store(Writable _operand) {
+    Store(ReadableWritable _operand) {
         operand = _operand;
     }
 
@@ -61,21 +48,55 @@ class Store extends InstructionStep {
 }
 
 
-class Increment extends InstructionStep {
+class ByteALUIncrement extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        int data = executionContext.getPrimaryData();
-        executionContext.setPrimaryData(++data);
+        executionContext.ALU.byteIncrement(executionContext);
     }
 
 }
 
 
-class Decrement extends InstructionStep {
+class ByteALUDecrement extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        int data = executionContext.getPrimaryData();
-        executionContext.setPrimaryData(--data);
+        executionContext.ALU.byteDecrement(executionContext);
+    }
+
+}
+
+
+class WordALUIncrement extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.wordIncrement(executionContext);
+    }
+
+}
+
+
+class WordALUDecrement extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.wordDecrement(executionContext);
+    }
+
+}
+
+
+class PostIncrementHL extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.postIncrementHL(executionContext);
+    }
+
+}
+
+
+class PostDecrementHL extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.postDecrementHL(executionContext);
     }
 
 }
@@ -119,8 +140,8 @@ class IfNZ extends InstructionStep {
 class JumpRelative extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        int relativeJump = executionContext.getPrimaryData();
-        executionContext.registers.incrementPC(relativeJump);
+        int relativeJump = executionContext.getData();
+        executionContext.ALU.addToPC(executionContext, relativeJump);
         logger.trace("Relative jump of {} to address {}.", relativeJump,
                 StringUtils.toHex(executionContext.registers.getPC()));
     }

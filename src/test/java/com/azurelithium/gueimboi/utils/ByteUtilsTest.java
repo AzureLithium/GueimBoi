@@ -11,19 +11,16 @@ public class ByteUtilsTest {
 
     byte mostNegativeByte, mostPositiveByte, allZeroByte, allOneByte;
     short mostNegativeWord, mostPositiveWord, allZeroWord, allOneWord;
-    int mostNegativeInt, mostPositiveInt, allZeroInt, allOneInt;
-    int allUnset, allSet;
+    int allReset, allSet;
 
     @Before
     public void testInit() {
         mostNegativeByte = Byte.MIN_VALUE;
         mostNegativeWord = Short.MIN_VALUE;
-        mostNegativeInt = Integer.MIN_VALUE;
         mostPositiveByte = Byte.MAX_VALUE;
         mostPositiveWord = Short.MAX_VALUE;
-        mostPositiveInt = Integer.MAX_VALUE;
-        allUnset = 0x00000000;
-        allSet = 0xFFFFFFFF;
+        allReset = 0x0000;
+        allSet = 0xFFFF;
     }
 
     /**
@@ -40,26 +37,18 @@ public class ByteUtilsTest {
         assertTrue(ByteUtils.getBit(mostNegativeWord, 15));
         assertTrue(ByteUtils.getBit(mostPositiveWord, 0));
         assertFalse(ByteUtils.getBit(mostPositiveWord, 15));
-        assertFalse(ByteUtils.getBit(mostNegativeInt, 0));
-        assertTrue(ByteUtils.getBit(mostNegativeInt, 31));
-        assertTrue(ByteUtils.getBit(mostPositiveInt, 0));
-        assertFalse(ByteUtils.getBit(mostPositiveInt, 31));
     }
 
     @Test
     public void testGetMSB() {
         assertEquals(ByteUtils.getMSB(mostNegativeWord), (int)mostPositiveByte + 1);
-        assertEquals(ByteUtils.getMSB(mostNegativeInt), 0);
         assertEquals(ByteUtils.getMSB(mostPositiveWord), mostPositiveByte);
-        assertEquals(ByteUtils.getMSB(mostPositiveInt), 0xFF);
     }
 
     @Test
     public void testGetLSB() {
         assertEquals(ByteUtils.getLSB(mostNegativeWord), 0);
-        assertEquals(ByteUtils.getLSB(mostNegativeInt), 0);
         assertEquals(ByteUtils.getLSB(mostPositiveWord), 0xFF);
-        assertEquals(ByteUtils.getLSB(mostPositiveInt), 0xFF);
     }
 
     /**
@@ -68,14 +57,11 @@ public class ByteUtilsTest {
 
     @Test
     public void testToWordFromBytes() {
-        assertEquals(ByteUtils.toWord(mostPositiveByte, (byte) -1), Short.MAX_VALUE);
-        assertEquals(ByteUtils.toWord((byte) 0, Byte.MAX_VALUE), Byte.MAX_VALUE);
-        assertEquals(ByteUtils.toWord(mostNegativeByte, Byte.MAX_VALUE),
-                Short.MIN_VALUE + Byte.MAX_VALUE);
+        assertEquals(ByteUtils.toWord(mostPositiveByte, -1), Short.MAX_VALUE);
+        assertEquals(ByteUtils.toWord(mostNegativeByte, allZeroByte), Short.MAX_VALUE + 1);
         assertEquals(ByteUtils.toWord(allZeroByte, allZeroByte), allZeroWord);
         assertEquals(ByteUtils.toWord(allZeroByte, mostPositiveByte), mostPositiveByte);
         assertEquals(ByteUtils.toWord(allZeroByte, mostNegativeByte), Byte.MAX_VALUE + 1);
-        assertEquals(ByteUtils.toWord(mostNegativeByte, allZeroByte), mostNegativeWord);
     }
 
     /**
@@ -84,15 +70,15 @@ public class ByteUtilsTest {
 
     @Test
     public void testSetBit() {
-        for (int i=0 ; i<32; i++) {
-            assertEquals(ByteUtils.setBit(allUnset, i), 1 << i);
+        for (int i=0 ; i<Short.SIZE; i++) {
+            assertEquals(ByteUtils.setBit(allReset, i), 1 << i);
         }
     }
 
     @Test
-    public void testUnsetBit() {
-        for (int i=0 ; i<32; i++) {
-            assertEquals(ByteUtils.unsetBit(allSet, i), 0xFFFFFFFF ^ (1 << i));
+    public void testResetBit() {
+        for (int i=0 ; i<Short.SIZE; i++) {
+            assertEquals(ByteUtils.resetBit(allSet, i), allSet ^ (1 << i));
         }
     }
 

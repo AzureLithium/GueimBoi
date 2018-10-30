@@ -17,7 +17,7 @@ class Flags {
     }
 
     Flags(int _flags) {
-        flags = _flags;
+        flags = _flags & 0xF0;
     }
 
     int getFlags() {
@@ -56,27 +56,27 @@ class Flags {
         flags = ByteUtils.setBit(flags, C_bit);
     }
 
-    void unsetZ() {
-        flags = ByteUtils.unsetBit(flags, Z_bit);
+    void resetZ() {
+        flags = ByteUtils.resetBit(flags, Z_bit);
     }
 
-    void unsetN() {
-        flags = ByteUtils.unsetBit(flags, N_bit);
+    void resetN() {
+        flags = ByteUtils.resetBit(flags, N_bit);
     }
 
-    void unsetH() {
-        flags = ByteUtils.unsetBit(flags, H_bit);
+    void resetH() {
+        flags = ByteUtils.resetBit(flags, H_bit);
     }
 
-    void unsetC() {
-        flags = ByteUtils.unsetBit(flags, C_bit);
+    void resetC() {
+        flags = ByteUtils.resetBit(flags, C_bit);
     }
 
     void setZ(boolean bit) {
         if (bit) {
             flags = ByteUtils.setBit(flags, Z_bit);
         } else {
-            flags = ByteUtils.unsetBit(flags, Z_bit);
+            flags = ByteUtils.resetBit(flags, Z_bit);
         }
     }
 
@@ -84,7 +84,7 @@ class Flags {
         if (bit) {
             flags = ByteUtils.setBit(flags, N_bit);
         } else {
-            flags = ByteUtils.unsetBit(flags, N_bit);
+            flags = ByteUtils.resetBit(flags, N_bit);
         }
     }
 
@@ -92,7 +92,7 @@ class Flags {
         if (bit) {
             flags = ByteUtils.setBit(flags, H_bit);
         } else {
-            flags = ByteUtils.unsetBit(flags, H_bit);
+            flags = ByteUtils.resetBit(flags, H_bit);
         }
     }
 
@@ -100,7 +100,7 @@ class Flags {
         if (bit) {
             flags = ByteUtils.setBit(flags, C_bit);
         } else {
-            flags = ByteUtils.unsetBit(flags, C_bit);
+            flags = ByteUtils.resetBit(flags, C_bit);
         }
     }
 

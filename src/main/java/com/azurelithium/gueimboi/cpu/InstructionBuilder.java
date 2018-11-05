@@ -36,6 +36,16 @@ class InstructionBuilder {
         return this;
     }
 
+    InstructionBuilder push() {
+        instruction.addStep(new Push());
+        return this;
+    }
+
+    InstructionBuilder pop() {
+        instruction.addStep(new Pop());
+        return this;
+    }
+
     /**
      * Arithmetic/Logical commands
      */
@@ -75,6 +85,21 @@ class InstructionBuilder {
         return this;
     }
 
+    InstructionBuilder CP() {
+        instruction.addStep(new CP());
+        return this;
+    }
+
+    InstructionBuilder RLA() {
+        instruction.addStep(new RLA());
+        return this;
+    }
+
+    InstructionBuilder RL() {
+        instruction.addStep(new RL());
+        return this;
+    }
+
     /**
      * Bit commands
      */
@@ -95,11 +120,21 @@ class InstructionBuilder {
 
 
     /**
-     * Jump/Return commands
+     * Jump/Call/Return commands
      */
 
     InstructionBuilder jumpRelative() {
         instruction.addStep(new JumpRelative());
+        return this;
+    }
+
+    InstructionBuilder call() {
+        instruction.addStep(new Call());
+        return this;
+    }
+
+    InstructionBuilder ret() {
+        instruction.addStep(new Ret());
         return this;
     }
 

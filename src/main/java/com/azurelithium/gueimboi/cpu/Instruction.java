@@ -43,10 +43,9 @@ class Instruction {
         logger.trace("Executing instruction {} : {}", StringUtils.toHex(opcode),
                 mnemonic);
         for (InstructionStep instructionStep : instructionSteps) {
-            if (executionContext.executeNextStep) {
-                instructionStep.execute(executionContext);
-            } else {
-                executionContext.executeNextStep = true;            
+            instructionStep.execute(executionContext);
+            if (!executionContext.executeNextStep) {
+                executionContext.executeNextStep = true;       
                 break;
             }            
         }        

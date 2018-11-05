@@ -20,6 +20,7 @@ class ISA {
         private final E E = new E();   
         private final H H = new H();
         private final L L = new L();
+        private final AF AF = new AF();
         private final BC BC = new BC();
         private final BCAddress BC_ADDRESS = new BCAddress();
         private final DE DE = new DE();
@@ -60,7 +61,12 @@ class ISA {
         }
 
         private void addCallInstructions() {
+                addInstruction(0xCD, instructionBuilder.instruction(0xCD, "CALL a16")
+                        .decodeOperand(WORD_ADDRESS)
+                        .call());
 
+                addInstruction(0xC9, instructionBuilder.instruction(0xC9, "RET")
+                        .ret());
         }
 
         private void addByteLoadStoreInstructions() {
@@ -150,13 +156,32 @@ class ISA {
         }
 
         private void addWordLoadStoreInstructions() {
-                addInstruction(0x21, instructionBuilder.instruction(0x21, "LD HL, d16")
-                        .decodeOperand(WORD_IMMEDIATE)
-                        .store(HL));
+                int opcode = 0x01;
+                for (ReadableWritable operand : new ReadableWritable[]{BC, DE, HL, SP}) {
+                        addInstruction(opcode, instructionBuilder.instruction(
+                                opcode, "LD " + ((Operand)operand).getName() + ", d16")
+                                .decodeOperand(WORD_IMMEDIATE)
+                                .store(operand));
+                        opcode += 0x10;
+                }
 
-                addInstruction(0x31, instructionBuilder.instruction(0x31, "LD SP, d16")
-                        .decodeOperand(WORD_IMMEDIATE)
-                        .store(SP));
+                opcode = 0xC5;
+                for (ReadableWritable operand : new ReadableWritable[]{BC, DE, HL, AF}) {
+                        addInstruction(opcode, instructionBuilder.instruction(
+                                opcode, "PUSH " + ((Operand)operand).getName())
+                                .load(operand)
+                                .push());
+                        opcode += 0x10;
+                }
+
+                opcode = 0xC1;
+                for (ReadableWritable operand : new ReadableWritable[]{BC, DE, HL, AF}) {
+                        addInstruction(opcode, instructionBuilder.instruction(
+                                opcode, "POP " + ((Operand)operand).getName())
+                                .load(operand)
+                                .pop());
+                        opcode += 0x10;
+                }
         }
 
         private void addByteALUInstructions() {
@@ -184,6 +209,10 @@ class ISA {
                         .load(A)
                         .XOR()
                         .store(A));
+
+                addInstruction(0xFE, instructionBuilder.instruction(0xFE, "CP d8")
+                        .decodeOperand(BYTE_IMMEDIATE)
+                        .CP());
         }
 
         private void addWordALUInstructions() {
@@ -210,7 +239,18 @@ class ISA {
         }
 
         private void addRotationInstructions() {
+                addInstruction(0x17, instructionBuilder.instruction(0x17, "RLA")
+                                .RLA());
 
+                int opcode = 0xCB10;
+                for (ReadableWritable operand : new ReadableWritable[]{B, C, D, E, H, L, HL_ADDRESS, A}) {
+                        addInstruction(opcode, instructionBuilder.instruction(
+                                opcode, "RL " + ((Operand)operand).getName())
+                                .load(operand)
+                                .RL()
+                                .store(operand));
+                        opcode++;
+                }
         }
 
         private void addShiftInstructions() {

@@ -12,6 +12,7 @@ public class MMU {
     public MMU() {
         ram = new RAM();
         ram.writeBytes(0x0000, ROM.GAMEBOY_ROM);
+        ram.writeBytes(0x0104, ROM.NINTENDO_LOGO);
     }
 
     public int readByte(int address) {

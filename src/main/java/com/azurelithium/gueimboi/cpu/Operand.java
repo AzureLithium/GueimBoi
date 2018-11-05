@@ -64,7 +64,7 @@ abstract class AddressOperand extends Operand implements ReadableWritable {
 
     public int read(ExecutionContext executionContext) {
         setAddress(executionContext);
-        int byteRead = executionContext.MMU.readByte(executionContext.dataAddress);
+        int byteRead = executionContext.MMU.readByte(executionContext.getDataAddress());
         logReadByteFromAddress(StringUtils.toHex(byteRead),
                 executionContext.printDataAddress());
         return byteRead;
@@ -72,7 +72,7 @@ abstract class AddressOperand extends Operand implements ReadableWritable {
 
     public void write(ExecutionContext executionContext) {
         setAddress(executionContext);
-        executionContext.MMU.writeBytes(executionContext.dataAddress,
+        executionContext.MMU.writeBytes(executionContext.getDataAddress(),
                 executionContext.getDataBytes());
         logWriteBytesToAddress(executionContext.printData(),
                 executionContext.printDataAddress());
@@ -135,7 +135,7 @@ final class CAddress extends AddressOperand {
     }
 
     void setAddress(ExecutionContext executionContext) {
-        executionContext.dataAddress = 0xFF00 | executionContext.registers.getC();
+        executionContext.setDataAddress(0xFF00 | executionContext.registers.getC());
     }
 
 }
@@ -226,7 +226,7 @@ final class BCAddress extends AddressOperand {
     }
 
     void setAddress(ExecutionContext executionContext) {
-        executionContext.dataAddress = executionContext.registers.getBC();
+        executionContext.setDataAddress(executionContext.registers.getBC());
     }
 
 }
@@ -252,7 +252,7 @@ final class DEAddress extends AddressOperand {
     }
 
     void setAddress(ExecutionContext executionContext) {
-        executionContext.dataAddress = executionContext.registers.getDE();
+        executionContext.setDataAddress(executionContext.registers.getDE());
     }
 
 }
@@ -278,7 +278,7 @@ final class HLAddress extends AddressOperand {
     }
 
     void setAddress(ExecutionContext executionContext) {
-        executionContext.dataAddress = executionContext.registers.getHL();
+        executionContext.setDataAddress(executionContext.registers.getHL());
     }
 
 }
@@ -340,7 +340,7 @@ final class ByteAddress extends AddressOperand implements Decodable {
     public void decode(ExecutionContext executionContext) {
         int address = executionContext.registers.getPC();
         int byteRead = executionContext.MMU.readByte(address);
-        executionContext.dataAddress = 0xFF00 | byteRead;
+        executionContext.setDataAddress(0xFF00 | byteRead);
         executionContext.ALU.incrementPC(executionContext, Byte.BYTES);
         logDecode(StringUtils.toHex(byteRead), StringUtils.toHex(address));
     }
@@ -403,7 +403,7 @@ final class WordAddress extends AddressOperand implements Decodable {
     public void decode(ExecutionContext executionContext) {
         int address = executionContext.registers.getPC();
         int[] bytesRead = executionContext.MMU.readBytes(address, Short.BYTES);
-        executionContext.dataAddress = ByteUtils.toWord(bytesRead[0], bytesRead[1]);
+        executionContext.setDataAddress(ByteUtils.toWord(bytesRead[0], bytesRead[1]));
         executionContext.ALU.incrementPC(executionContext, Short.BYTES);
         logDecode(executionContext.printDataAddress(), StringUtils.toHex(address));
     }

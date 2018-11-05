@@ -1,13 +1,14 @@
 package com.azurelithium.gueimboi.cpu;
 
-import java.math.BigInteger;
 import com.azurelithium.gueimboi.memory.MMU;
+import com.azurelithium.gueimboi.utils.ByteUtils;
 import com.azurelithium.gueimboi.utils.StringUtils;
+import java.math.BigInteger;
 
 class ExecutionContext {
 
     private int data;
-    int dataAddress;
+    private int dataAddress;
     boolean executeNextStep;
     Registers registers;
     MMU MMU;
@@ -21,7 +22,7 @@ class ExecutionContext {
         BigInteger dataBig = BigInteger.valueOf(data);
         byte[] bytes = dataBig.toByteArray();
         int[] dataBytes = new int[bytes.length];
-        for (int i=0 ; i<bytes.length ; i++) {
+        for (int i = 0; i < bytes.length; i++) {
             dataBytes[i] = (int) bytes[i];
         }
         return dataBytes;
@@ -29,6 +30,18 @@ class ExecutionContext {
 
     void setData(int _data) {
         data = _data;
+    }
+
+    int getDataAddress() {
+        return dataAddress;
+    }
+
+    int[] getDataAddressBytes() {
+        return new int[] {ByteUtils.getMSB(dataAddress), ByteUtils.getLSB(dataAddress)};
+    }
+
+    void setDataAddress(int _dataAddress) {
+        dataAddress = _dataAddress;
     }
 
     String printData() {

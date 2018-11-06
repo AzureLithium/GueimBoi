@@ -148,6 +148,24 @@ class PostDecrementHL extends InstructionStep {
 }
 
 
+class ADD extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.ADD(executionContext);
+    }
+
+}
+
+
+class SUB extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.SUB(executionContext);
+    }
+
+}
+
+
 class XOR extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
@@ -194,6 +212,17 @@ class TestBit extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
         executionContext.ALU.testBit(executionContext, bit);
+    }
+
+}
+
+
+class IfZ extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        if (!executionContext.registers.getFlags().isZ()) {
+            executionContext.executeNextStep = false;
+        }
     }
 
 }

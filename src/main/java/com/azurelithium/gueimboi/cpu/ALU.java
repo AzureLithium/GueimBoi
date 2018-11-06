@@ -34,7 +34,7 @@ class ALU {
         Flags flags = executionContext.registers.getFlags();
         flags.setZ(decrementResult == 0);
         flags.setN();
-        flags.setH(!borrow(byteData, 1, BYTE_HALFCARRY_POSITION));
+        flags.setH(borrow(byteData, 1, BYTE_HALFCARRY_POSITION));
         logALUOperation("Byte Decrement", StringUtils.toHex(decrementResult), flags);
     }
 
@@ -97,10 +97,34 @@ class ALU {
         executionContext.registers.setPC(additionResult);
     }
 
+    void ADD(ExecutionContext executionContext) {
+        int data = executionContext.getData();
+        int ADDResult = (executionContext.registers.getA() + data) & BYTE_MASK;
+        executionContext.setData(ADDResult);
+        Flags flags = executionContext.registers.getFlags();
+        flags.setZ(ADDResult == 0);
+        flags.resetN();
+        flags.setH(carry(executionContext.registers.getA(), data, BYTE_HALFCARRY_POSITION));
+        flags.setC(carry(executionContext.registers.getA(), data, BYTE_CARRY_POSITION));
+        logALUOperation("ADD", StringUtils.toHex(ADDResult), flags);
+    }
+
+    void SUB(ExecutionContext executionContext) {
+        int data = executionContext.getData();
+        int SUBResult = (executionContext.registers.getA() - data) & BYTE_MASK;
+        Flags flags = executionContext.registers.getFlags();
+        executionContext.setData(SUBResult);
+        flags.setZ(SUBResult == 0);
+        flags.setN();
+        flags.setH(borrow(executionContext.registers.getA(), data, BYTE_HALFCARRY_POSITION));
+        flags.setC(SUBResult < 0);
+        logALUOperation("SUB", StringUtils.toHex(SUBResult), flags);
+    }
+
     void XOR(ExecutionContext executionContext) {
         int XORResult =
                 (executionContext.getData() ^ executionContext.registers.getA()) & BYTE_MASK;
-        executionContext.registers.setA(XORResult);
+        executionContext.setData(XORResult);
         Flags flags = executionContext.registers.getFlags();
         flags.setZ(XORResult == 0);
         flags.resetN();
@@ -114,7 +138,7 @@ class ALU {
         Flags flags = executionContext.registers.getFlags();
         flags.setZ(CPResult == 0);
         flags.setN();
-        flags.setH(!borrow(executionContext.registers.getA(), executionContext.getData(),
+        flags.setH(borrow(executionContext.registers.getA(), executionContext.getData(),
                 BYTE_HALFCARRY_POSITION));
         flags.setC(CPResult < 0);
         logALUOperation("CP", StringUtils.toHex(CPResult), flags);

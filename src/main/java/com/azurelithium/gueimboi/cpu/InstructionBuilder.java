@@ -80,6 +80,16 @@ class InstructionBuilder {
         return this;
     }
 
+    InstructionBuilder ADD() {
+        instruction.addStep(new ADD());
+        return this;
+    }
+
+    InstructionBuilder SUB() {
+        instruction.addStep(new SUB());
+        return this;
+    }
+
     InstructionBuilder XOR() {
         instruction.addStep(new XOR());
         return this;
@@ -112,6 +122,11 @@ class InstructionBuilder {
     /**
      * Flag commands
      */
+
+    InstructionBuilder ifZ() {
+        instruction.addStep(new IfZ());
+        return this;
+    }
 
     InstructionBuilder ifNZ() {
         instruction.addStep(new IfNZ());

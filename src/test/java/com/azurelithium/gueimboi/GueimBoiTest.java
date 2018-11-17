@@ -21,6 +21,6 @@ public class GueimBoiTest {
         logger.info("Starting GueimBoi.");
         MMU mmu = new MMU();
         CPU cpu = new CPU(mmu);
-        cpu.run();
+        cpu.tick();
     }
 }

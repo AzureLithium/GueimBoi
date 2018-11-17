@@ -1,12 +1,11 @@
 package com.azurelithium.gueimboi.cpu;
 
 import com.azurelithium.gueimboi.memory.MMU;
-import com.azurelithium.gueimboi.utils.ByteUtils;
 import com.azurelithium.gueimboi.utils.StringUtils;
-import java.math.BigInteger;
 
-class ExecutionContext {
+public class ExecutionContext {
 
+    private long cycles;
     private int data;
     private int dataAddress;
     boolean executeNextStep;
@@ -14,18 +13,28 @@ class ExecutionContext {
     MMU MMU;
     ALU ALU;
 
+    public long getCycles() {
+        return cycles;
+    }
+
+    public void setCycles(long _cycles) {
+        cycles = _cycles;
+    }
+
+    void addCycles() {
+        cycles += 4;
+    }
+
     int getData() {
         return data;
     }
 
-    int[] getDataBytes() {
-        BigInteger dataBig = BigInteger.valueOf(data);
-        byte[] bytes = dataBig.toByteArray();
-        int[] dataBytes = new int[bytes.length];
-        for (int i = 0; i < bytes.length; i++) {
-            dataBytes[i] = (int) bytes[i];
-        }
-        return dataBytes;
+    int getDataLSB() {
+        return data & 0xFF;
+    }
+
+    int getDataMSB() {
+        return (data >> Byte.SIZE) & 0xFF;
     }
 
     void setData(int _data) {
@@ -34,10 +43,6 @@ class ExecutionContext {
 
     int getDataAddress() {
         return dataAddress;
-    }
-
-    int[] getDataAddressBytes() {
-        return new int[] {ByteUtils.getMSB(dataAddress), ByteUtils.getLSB(dataAddress)};
     }
 
     void setDataAddress(int _dataAddress) {

@@ -13,14 +13,22 @@ class InstructionBuilder {
         return this;
     }
 
+
     /**
      * Decode operand command
      */
 
-    InstructionBuilder decodeOperand(Decodable operand) {
-        instruction.setInstructionOperand(operand);
+    InstructionBuilder decode(DecodableByte operand) {
+        instruction.addStep(new DecodeLSB(operand));
         return this;
     }
+
+    InstructionBuilder decode(DecodableWord operand) {
+        instruction.addStep(new DecodeLSB(operand));
+        instruction.addStep(new DecodeMSB(operand));
+        return this;
+    }
+
 
     /**
      * Loading and Storing commands
@@ -36,15 +44,24 @@ class InstructionBuilder {
         return this;
     }
 
-    InstructionBuilder push() {
-        instruction.addStep(new Push());
+    InstructionBuilder storeWordInAddress(AddressOperand operand) {
+        instruction.addStep(new StoreLSB(operand));
+        instruction.addStep(new StoreMSB(operand));
         return this;
     }
 
-    InstructionBuilder pop() {
-        instruction.addStep(new Pop());
+    InstructionBuilder push(PushablePopable operand) {
+        instruction.addStep(new PushMSB(operand));
+        instruction.addStep(new PushLSB(operand));
         return this;
     }
+
+    InstructionBuilder pop(PushablePopable operand) {
+        instruction.addStep(new PopLSB(operand));
+        instruction.addStep(new PopMSB(operand));
+        return this;
+    }
+
 
     /**
      * Arithmetic/Logical commands
@@ -110,6 +127,7 @@ class InstructionBuilder {
         return this;
     }
 
+
     /**
      * Bit commands
      */
@@ -118,6 +136,7 @@ class InstructionBuilder {
         instruction.addStep(new TestBit(bit));
         return this;
     }
+
 
     /**
      * Flag commands
@@ -138,18 +157,23 @@ class InstructionBuilder {
      * Jump/Call/Return commands
      */
 
+    InstructionBuilder jump() {
+        instruction.addStep(new Jump());
+        return this;
+    }
+
     InstructionBuilder jumpRelative() {
         instruction.addStep(new JumpRelative());
         return this;
     }
 
-    InstructionBuilder call() {
-        instruction.addStep(new Call());
-        return this;
-    }
 
-    InstructionBuilder ret() {
-        instruction.addStep(new Ret());
+    /**
+     * Misc commands
+     */
+
+    InstructionBuilder internalDelay() {
+        instruction.addStep(new InternalDelay());
         return this;
     }
 

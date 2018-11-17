@@ -1,6 +1,5 @@
 package com.azurelithium.gueimboi.cpu;
 
-import com.azurelithium.gueimboi.utils.ByteUtils;
 import com.azurelithium.gueimboi.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,29 +8,43 @@ abstract class InstructionStep {
 
     final Logger logger = LoggerFactory.getLogger(getClass());
 
+    protected boolean consumesCycles = false;
+    boolean doesConsumeCycles() {
+        return consumesCycles;
+    }
+
     abstract void execute(ExecutionContext executionContext);
 
 }
 
 
-interface PushOperation {
+class DecodeLSB extends InstructionStep {
 
-    default void push(ExecutionContext executionContext, int[] bytes) {
-        int pushAddress = executionContext.registers.getSP();
-        executionContext.MMU.writeBytes(pushAddress - bytes.length, bytes); // 8 cycles
-        executionContext.ALU.incrementSP(executionContext, -bytes.length);
+    private Decodable operand;
+
+    DecodeLSB(Decodable _operand) {
+        operand = _operand;
+        consumesCycles = true;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        operand.decodeLSB(executionContext);
     }
 
 }
 
 
-interface PopOperation {
+class DecodeMSB extends InstructionStep {
 
-    default int[] pop(ExecutionContext executionContext) {
-        int popAddress = executionContext.registers.getSP();
-        int[] bytes = executionContext.MMU.readBytes(popAddress, Short.BYTES); // 8 cycles                                                                                          // cycles
-        executionContext.ALU.incrementSP(executionContext, bytes.length);
-        return bytes;
+    private DecodableWord operand;
+
+    DecodeMSB(DecodableWord _operand) {
+        operand = _operand;
+        consumesCycles = true;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        operand.decodeMSB(executionContext);
     }
 
 }
@@ -43,6 +56,7 @@ class Load extends InstructionStep {
 
     Load(ReadableWritable _operand) {
         operand = _operand;
+        consumesCycles = operand.consumesCycles();
     }
 
     void execute(ExecutionContext executionContext) {
@@ -63,6 +77,7 @@ class Store extends InstructionStep {
 
     Store(ReadableWritable _operand) {
         operand = _operand;
+        consumesCycles = operand.consumesCycles();
     }
 
     void execute(ExecutionContext executionContext) {
@@ -72,23 +87,97 @@ class Store extends InstructionStep {
 }
 
 
-class Push extends InstructionStep implements PushOperation {
+class StoreLSB extends InstructionStep {
+
+    private AddressOperand operand;
+
+    StoreLSB(AddressOperand _operand) {
+        operand = _operand;
+        consumesCycles = true;
+    }
 
     void execute(ExecutionContext executionContext) {
-        int[] dataBytes = executionContext.getDataBytes();
-        push(executionContext, dataBytes);
-        logger.trace("Push {}.", StringUtils.toHex(executionContext.getData()));
+        operand.writeLSB(executionContext);
     }
 
 }
 
 
-class Pop extends InstructionStep implements PopOperation {
+class StoreMSB extends InstructionStep {
+
+    private AddressOperand operand;
+
+    StoreMSB(AddressOperand _operand) {
+        operand = _operand;
+        consumesCycles = true;
+    }
 
     void execute(ExecutionContext executionContext) {
-        int[] dataBytes = pop(executionContext);
-        executionContext.setData(ByteUtils.toWord(dataBytes[0], dataBytes[1]));
-        logger.trace("Pop {}.", StringUtils.toHex(executionContext.getData()));
+        operand.writeMSB(executionContext);
+    }
+
+}
+
+
+class PushLSB extends InstructionStep {
+
+    private PushablePopable operand;
+
+    PushLSB(PushablePopable _operand) {
+        operand = _operand;
+        consumesCycles = true;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        operand.pushLSB(executionContext);
+    }
+
+}
+
+
+class PushMSB extends InstructionStep {
+
+    private PushablePopable operand;
+
+    PushMSB(PushablePopable _operand) {
+        operand = _operand;
+        consumesCycles = true;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        operand.pushMSB(executionContext);
+    }
+
+}
+
+
+class PopLSB extends InstructionStep {
+
+    private PushablePopable operand;
+
+    PopLSB(PushablePopable _operand) {
+        operand = _operand;
+        consumesCycles = true;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        operand.popLSB(executionContext);
+    }
+
+}
+
+
+class PopMSB extends InstructionStep {
+
+    private PushablePopable operand;
+
+    PopMSB(PushablePopable _operand) {
+        operand = _operand;
+        consumesCycles = true;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        operand.popMSB(executionContext);
     }
 
 }
@@ -239,6 +328,17 @@ class IfNZ extends InstructionStep {
 }
 
 
+class Jump extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        int jump = executionContext.getDataAddress();
+        executionContext.registers.setPC(jump);
+        logger.trace("JP: {} .", StringUtils.toHex(jump));
+    }
+
+}
+
+
 class JumpRelative extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
@@ -251,32 +351,13 @@ class JumpRelative extends InstructionStep {
 }
 
 
-class Call extends InstructionStep implements PushOperation {
+class InternalDelay extends InstructionStep {
+
+    InternalDelay() {
+        consumesCycles = true;
+    }
 
     void execute(ExecutionContext executionContext) {
-        int callAddress = executionContext.getDataAddress();
-        int returnAddress = executionContext.registers.getPC();
-        int[] returnAddressBytes =
-                new int[] {ByteUtils.getMSB(returnAddress), ByteUtils.getLSB(returnAddress)};
-        push(executionContext, returnAddressBytes);
-        executionContext.registers.setPC(callAddress);
-        logger.trace("CALL: {}, return address is {}.", StringUtils.toHex(callAddress),
-                StringUtils.toHex(returnAddress));
     }
 
 }
-
-
-class Ret extends InstructionStep implements PopOperation {
-
-    void execute(ExecutionContext executionContext) {
-        int[] returnAddressBytes = pop(executionContext);
-        int returnAddress = ByteUtils.toWord(returnAddressBytes[0], returnAddressBytes[1]);
-        executionContext.registers.setPC(returnAddress);
-        logger.trace("RET: {}.", StringUtils.toHex(returnAddress));
-    }
-
-}
-
-
-

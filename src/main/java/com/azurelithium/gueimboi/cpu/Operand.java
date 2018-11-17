@@ -1,6 +1,5 @@
 package com.azurelithium.gueimboi.cpu;
 
-import com.azurelithium.gueimboi.utils.ByteUtils;
 import com.azurelithium.gueimboi.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,18 +14,50 @@ abstract class Operand {
 
 }
 
-
 interface Decodable {
-    void decode(ExecutionContext executionContext);
     void logDecode(String data, String address);
+    void decodeLSB(ExecutionContext executionContext);
 }
 
+interface DecodableByte extends Decodable {
+}
+
+interface DecodableWord extends Decodable {
+    void decodeMSB(ExecutionContext executionContext);
+}
 
 interface ReadableWritable {
     int read(ExecutionContext executionContext);
     void write(ExecutionContext executionContext);
+    default boolean consumesCycles() {
+        return false;
+    }
 }
 
+interface PushablePopable {
+
+    default void push(ExecutionContext executionContext, int byteWrote) {
+        int pushAddress = executionContext.registers.getSP();
+        executionContext.MMU.writeByte(pushAddress - Byte.BYTES, byteWrote);
+        executionContext.ALU.incrementSP(executionContext, -Byte.BYTES);
+    }
+
+    default int pop(ExecutionContext executionContext) {
+        int popAddress = executionContext.registers.getSP();
+        int byteRead = executionContext.MMU.readByte(popAddress); // cycles
+        executionContext.ALU.incrementSP(executionContext, Byte.BYTES);
+        return byteRead;
+    }
+
+    void pushLSB(ExecutionContext executionContext);
+
+    void pushMSB(ExecutionContext executionContext);
+
+    void popLSB(ExecutionContext executionContext);
+
+    void popMSB(ExecutionContext executionContext);
+
+}
 
 abstract class RegisterOperand extends Operand implements ReadableWritable {
 
@@ -46,48 +77,57 @@ abstract class RegisterOperand extends Operand implements ReadableWritable {
     }
 
     void logReadFromRegister(String data) {
-        logger.trace("Registers: Reading data {} from register {}.", data,
-                getClass().getSimpleName());
+        logger.trace("Registers: Reading data {} from register {}.", data, getClass().getSimpleName());
     }
 
     void logWriteToRegister(String data) {
-        logger.trace("Registers: Writing data {} to register {}.", data,
-                getClass().getSimpleName());
+        logger.trace("Registers: Writing data {} to register {}.", data, getClass().getSimpleName());
     }
 
 }
 
-
 abstract class AddressOperand extends Operand implements ReadableWritable {
 
-    void setAddress(ExecutionContext executionContext) {};
+    public boolean consumesCycles() {
+        return true;
+    }
+
+    void setAddress(ExecutionContext executionContext) {
+    };
 
     public int read(ExecutionContext executionContext) {
         setAddress(executionContext);
         int byteRead = executionContext.MMU.readByte(executionContext.getDataAddress());
-        logReadByteFromAddress(StringUtils.toHex(byteRead),
-                executionContext.printDataAddress());
+        logReadByteFromAddress(StringUtils.toHex(byteRead), executionContext.printDataAddress());
         return byteRead;
     }
 
     public void write(ExecutionContext executionContext) {
         setAddress(executionContext);
-        executionContext.MMU.writeBytes(executionContext.getDataAddress(),
-                executionContext.getDataBytes());
-        logWriteBytesToAddress(executionContext.printData(),
-                executionContext.printDataAddress());
+        executionContext.MMU.writeByte(executionContext.getDataAddress(), executionContext.getDataLSB());
+        logWriteByteToAddress(StringUtils.toHex(executionContext.getDataLSB()), executionContext.printDataAddress());
+    }
+
+    public void writeLSB(ExecutionContext executionContext) {
+        write(executionContext);
+    }
+
+    public void writeMSB(ExecutionContext executionContext) {
+        setAddress(executionContext);
+        executionContext.MMU.writeByte(executionContext.getDataAddress() + 1, executionContext.getDataMSB());
+        logWriteByteToAddress(StringUtils.toHex(executionContext.getDataMSB()),
+                StringUtils.toHex(executionContext.getDataAddress() + 1));
     }
 
     void logReadByteFromAddress(String data, String address) {
         logger.trace("Memory: Read byte {} from address {}.", data, address);
     }
 
-    void logWriteBytesToAddress(String data, String address) {
+    void logWriteByteToAddress(String data, String address) {
         logger.trace("Memory: Writing bytes {} to address {}.", data, address);
     }
 
 }
-
 
 final class A extends RegisterOperand {
 
@@ -101,7 +141,6 @@ final class A extends RegisterOperand {
 
 }
 
-
 final class B extends RegisterOperand {
 
     int getRegisterValue(ExecutionContext executionContext) {
@@ -113,7 +152,6 @@ final class B extends RegisterOperand {
     }
 
 }
-
 
 final class C extends RegisterOperand {
 
@@ -127,7 +165,6 @@ final class C extends RegisterOperand {
 
 }
 
-
 final class CAddress extends AddressOperand {
 
     String getName() {
@@ -139,7 +176,6 @@ final class CAddress extends AddressOperand {
     }
 
 }
-
 
 final class D extends RegisterOperand {
 
@@ -153,7 +189,6 @@ final class D extends RegisterOperand {
 
 }
 
-
 final class E extends RegisterOperand {
 
     int getRegisterValue(ExecutionContext executionContext) {
@@ -165,7 +200,6 @@ final class E extends RegisterOperand {
     }
 
 }
-
 
 final class H extends RegisterOperand {
 
@@ -179,7 +213,6 @@ final class H extends RegisterOperand {
 
 }
 
-
 final class L extends RegisterOperand {
 
     int getRegisterValue(ExecutionContext executionContext) {
@@ -192,8 +225,7 @@ final class L extends RegisterOperand {
 
 }
 
-
-final class AF extends RegisterOperand {
+final class AF extends RegisterOperand implements PushablePopable {
 
     int getRegisterValue(ExecutionContext executionContext) {
         return executionContext.registers.getAF();
@@ -203,10 +235,25 @@ final class AF extends RegisterOperand {
         executionContext.registers.setAF(executionContext.getData());
     }
 
+    public void pushLSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getFlags().getFlags());
+    }
+
+    public void pushMSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getA());
+    }
+
+    public void popLSB(ExecutionContext executionContext) {
+        executionContext.registers.setFlags(pop(executionContext));
+    }
+
+    public void popMSB(ExecutionContext executionContext) {
+        executionContext.registers.setA(pop(executionContext));
+    }
+
 }
 
-
-final class BC extends RegisterOperand {
+final class BC extends RegisterOperand implements PushablePopable {
 
     int getRegisterValue(ExecutionContext executionContext) {
         return executionContext.registers.getBC();
@@ -216,8 +263,23 @@ final class BC extends RegisterOperand {
         executionContext.registers.setBC(executionContext.getData());
     }
 
-}
+    public void pushLSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getC());
+    }
 
+    public void pushMSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getB());
+    }
+
+    public void popLSB(ExecutionContext executionContext) {
+        executionContext.registers.setC(pop(executionContext));
+    }
+
+    public void popMSB(ExecutionContext executionContext) {
+        executionContext.registers.setB(pop(executionContext));
+    }
+
+}
 
 final class BCAddress extends AddressOperand {
 
@@ -231,8 +293,7 @@ final class BCAddress extends AddressOperand {
 
 }
 
-
-final class DE extends RegisterOperand {
+final class DE extends RegisterOperand implements PushablePopable {
 
     int getRegisterValue(ExecutionContext executionContext) {
         return executionContext.registers.getDE();
@@ -242,8 +303,23 @@ final class DE extends RegisterOperand {
         executionContext.registers.setDE(executionContext.getData());
     }
 
-}
+    public void pushLSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getE());
+    }
 
+    public void pushMSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getD());
+    }
+
+    public void popLSB(ExecutionContext executionContext) {
+        executionContext.registers.setE(pop(executionContext));
+    }
+
+    public void popMSB(ExecutionContext executionContext) {
+        executionContext.registers.setD(pop(executionContext));
+    }
+
+}
 
 final class DEAddress extends AddressOperand {
 
@@ -257,8 +333,7 @@ final class DEAddress extends AddressOperand {
 
 }
 
-
-final class HL extends RegisterOperand {
+final class HL extends RegisterOperand implements PushablePopable {
 
     int getRegisterValue(ExecutionContext executionContext) {
         return executionContext.registers.getHL();
@@ -268,8 +343,23 @@ final class HL extends RegisterOperand {
         executionContext.registers.setHL(executionContext.getData());
     }
 
-}
+    public void pushLSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getL());
+    }
 
+    public void pushMSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getH());
+    }
+
+    public void popLSB(ExecutionContext executionContext) {
+        executionContext.registers.setL(pop(executionContext));
+    }
+
+    public void popMSB(ExecutionContext executionContext) {
+        executionContext.registers.setH(pop(executionContext));
+    }
+
+}
 
 final class HLAddress extends AddressOperand {
 
@@ -283,8 +373,7 @@ final class HLAddress extends AddressOperand {
 
 }
 
-
-final class PC extends RegisterOperand {
+final class PC extends RegisterOperand implements PushablePopable {
 
     int getRegisterValue(ExecutionContext executionContext) {
         return executionContext.registers.getPC();
@@ -294,10 +383,27 @@ final class PC extends RegisterOperand {
         executionContext.registers.setPC(executionContext.getData());
     }
 
+    public void pushLSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getPC() & 0xFF);
+    }
+
+    public void pushMSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getPC() >> Byte.SIZE);
+    }
+
+    public void popLSB(ExecutionContext executionContext) {
+        int PC = executionContext.registers.getPC();
+        executionContext.registers.setPC((PC & 0xFF00) | pop(executionContext));
+    }
+
+    public void popMSB(ExecutionContext executionContext) {
+        int PC = executionContext.registers.getPC();
+        executionContext.registers.setPC((pop(executionContext) << Byte.SIZE) | (PC & 0xFF));
+    }
+
 }
 
-
-final class SP extends RegisterOperand {
+final class SP extends RegisterOperand implements PushablePopable {
 
     int getRegisterValue(ExecutionContext executionContext) {
         return executionContext.registers.getSP();
@@ -307,16 +413,33 @@ final class SP extends RegisterOperand {
         executionContext.registers.setSP(executionContext.getData());
     }
 
+    public void pushLSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getSP() & 0xFF);
+    }
+
+    public void pushMSB(ExecutionContext executionContext) {
+        push(executionContext, executionContext.registers.getSP() >> Byte.SIZE);
+    }
+
+    public void popLSB(ExecutionContext executionContext) {
+        int SP = executionContext.registers.getSP();
+        executionContext.registers.setSP((SP & 0xFF00) | pop(executionContext));
+    }
+
+    public void popMSB(ExecutionContext executionContext) {
+        int SP = executionContext.registers.getSP();
+        executionContext.registers.setSP((pop(executionContext) << Byte.SIZE) | (SP & 0xFF));
+    }
+
 }
 
-
-final class ByteImmediate extends Operand implements Decodable {
+final class ByteImmediate extends Operand implements DecodableByte {
 
     String getName() {
         return "d8";
     }
 
-    public void decode(ExecutionContext executionContext) {
+    public void decodeLSB(ExecutionContext executionContext) {
         int address = executionContext.registers.getPC();
         int byteRead = executionContext.MMU.readByte(address);
         executionContext.setData(byteRead);
@@ -330,14 +453,13 @@ final class ByteImmediate extends Operand implements Decodable {
 
 }
 
-
-final class ByteAddress extends AddressOperand implements Decodable {
+final class ByteAddress extends AddressOperand implements DecodableByte {
 
     String getName() {
         return "(a8)";
     }
 
-    public void decode(ExecutionContext executionContext) {
+    public void decodeLSB(ExecutionContext executionContext) {
         int address = executionContext.registers.getPC();
         int byteRead = executionContext.MMU.readByte(address);
         executionContext.setDataAddress(0xFF00 | byteRead);
@@ -351,14 +473,13 @@ final class ByteAddress extends AddressOperand implements Decodable {
 
 }
 
-
-final class SignedByteImmediate extends Operand implements Decodable {
+final class SignedByteImmediate extends Operand implements DecodableByte {
 
     String getName() {
         return "r8";
     }
 
-    public void decode(ExecutionContext executionContext) {
+    public void decodeLSB(ExecutionContext executionContext) {
         int address = executionContext.registers.getPC();
         int byteRead = (byte) executionContext.MMU.readByte(address);
         executionContext.setData(byteRead);
@@ -372,19 +493,26 @@ final class SignedByteImmediate extends Operand implements Decodable {
 
 }
 
-
-final class WordImmediate extends Operand implements Decodable {
+final class WordImmediate extends Operand implements DecodableWord {
 
     String getName() {
         return "d16";
     }
 
-    public void decode(ExecutionContext executionContext) {
+    public void decodeLSB(ExecutionContext executionContext) {
         int address = executionContext.registers.getPC();
-        int[] bytesRead = executionContext.MMU.readBytes(address, Short.BYTES);
-        executionContext.setData(ByteUtils.toWord(bytesRead[0], bytesRead[1]));
-        executionContext.ALU.incrementPC(executionContext, Short.BYTES);
-        logDecode(executionContext.printData(), StringUtils.toHex(address));
+        int byteRead = executionContext.MMU.readByte(address);
+        executionContext.setData(byteRead);
+        executionContext.ALU.incrementPC(executionContext, Byte.BYTES);
+    }
+
+    public void decodeMSB(ExecutionContext executionContext) {
+        int address = executionContext.registers.getPC();
+        int byteRead = executionContext.MMU.readByte(address);
+        int data = executionContext.getData();
+        executionContext.setData((byteRead << Byte.SIZE) + data);
+        executionContext.ALU.incrementPC(executionContext, Byte.BYTES);
+        logDecode(executionContext.printData(), StringUtils.toHex(address - 1));
     }
 
     public void logDecode(String data, String address) {
@@ -393,19 +521,26 @@ final class WordImmediate extends Operand implements Decodable {
 
 }
 
-
-final class WordAddress extends AddressOperand implements Decodable {
+final class WordAddress extends AddressOperand implements DecodableWord {
 
     String getName() {
         return "(a16)";
     }
 
-    public void decode(ExecutionContext executionContext) {
+    public void decodeLSB(ExecutionContext executionContext) {
         int address = executionContext.registers.getPC();
-        int[] bytesRead = executionContext.MMU.readBytes(address, Short.BYTES);
-        executionContext.setDataAddress(ByteUtils.toWord(bytesRead[0], bytesRead[1]));
-        executionContext.ALU.incrementPC(executionContext, Short.BYTES);
-        logDecode(executionContext.printDataAddress(), StringUtils.toHex(address));
+        int byteRead = executionContext.MMU.readByte(address);
+        executionContext.setDataAddress(byteRead);
+        executionContext.ALU.incrementPC(executionContext, Byte.BYTES);
+    }
+
+    public void decodeMSB(ExecutionContext executionContext) {
+        int address = executionContext.registers.getPC();
+        int byteRead = executionContext.MMU.readByte(address);
+        int dataAddress = executionContext.getDataAddress();
+        executionContext.setDataAddress((byteRead << Byte.SIZE) + dataAddress);
+        executionContext.ALU.incrementPC(executionContext, Byte.BYTES);
+        logDecode(executionContext.printData(), StringUtils.toHex(address - 1));
     }
 
     public void logDecode(String data, String address) {

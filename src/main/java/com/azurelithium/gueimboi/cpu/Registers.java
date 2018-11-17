@@ -134,4 +134,8 @@ class Registers {
         return flags;
     }
 
+    void setFlags(int _flags) {
+        flags = new Flags(_flags);
+    }
+
 }

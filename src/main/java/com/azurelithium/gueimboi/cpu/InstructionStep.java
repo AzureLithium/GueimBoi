@@ -9,6 +9,7 @@ abstract class InstructionStep {
     final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected boolean consumesCycles = false;
+
     boolean doesConsumeCycles() {
         return consumesCycles;
     }
@@ -183,37 +184,37 @@ class PopMSB extends InstructionStep {
 }
 
 
-class ByteALUIncrement extends InstructionStep {
+class INC extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        executionContext.ALU.byteIncrement(executionContext);
+        executionContext.ALU.INC(executionContext);
     }
 
 }
 
 
-class ByteALUDecrement extends InstructionStep {
+class DEC extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        executionContext.ALU.byteDecrement(executionContext);
+        executionContext.ALU.DEC(executionContext);
     }
 
 }
 
 
-class WordALUIncrement extends InstructionStep {
+class WordINC extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        executionContext.ALU.wordIncrement(executionContext);
+        executionContext.ALU.wordINC(executionContext);
     }
 
 }
 
 
-class WordALUDecrement extends InstructionStep {
+class WordDEC extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        executionContext.ALU.wordDecrement(executionContext);
+        executionContext.ALU.wordDEC(executionContext);
     }
 
 }
@@ -246,10 +247,37 @@ class ADD extends InstructionStep {
 }
 
 
+class ADC extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.ADC(executionContext);
+    }
+
+}
+
+
 class SUB extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
         executionContext.ALU.SUB(executionContext);
+    }
+
+}
+
+
+class SBC extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.SBC(executionContext);
+    }
+
+}
+
+
+class AND extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.AND(executionContext);
     }
 
 }
@@ -264,10 +292,64 @@ class XOR extends InstructionStep {
 }
 
 
+class OR extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.OR(executionContext);
+    }
+
+}
+
+
 class CP extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
         executionContext.ALU.CP(executionContext);
+    }
+
+}
+
+
+class WordADD extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.wordADD(executionContext);
+    }
+
+}
+
+
+class DAA extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.DAA(executionContext);
+    }
+
+}
+
+
+class CPL extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.CPL(executionContext);
+    }
+
+}
+
+
+class SCF extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.SCF(executionContext);
+    }
+
+}
+
+
+class CCF extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.CCF(executionContext);
     }
 
 }
@@ -282,6 +364,33 @@ class RLA extends InstructionStep {
 }
 
 
+class RLCA extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.RLCA(executionContext);
+    }
+
+}
+
+
+class RRA extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.RRA(executionContext);
+    }
+
+}
+
+
+class RRCA extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.RRCA(executionContext);
+    }
+
+}
+
+
 class RL extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
@@ -291,27 +400,118 @@ class RL extends InstructionStep {
 }
 
 
-class TestBit extends InstructionStep {
-
-    private int bit;
-
-    TestBit(int _bit) {
-        bit = _bit;
-    }
+class RLC extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        executionContext.ALU.testBit(executionContext, bit);
+        executionContext.ALU.RLC(executionContext);
     }
 
 }
 
 
-class IfZ extends InstructionStep {
+class RR extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        if (!executionContext.registers.getFlags().isZ()) {
-            executionContext.executeNextStep = false;
-        }
+        executionContext.ALU.RR(executionContext);
+    }
+
+}
+
+
+class RRC extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.RRC(executionContext);
+    }
+
+}
+
+
+class SLA extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.SLA(executionContext);
+    }
+
+}
+
+
+class SRA extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.SRA(executionContext);
+    }
+
+}
+
+
+class SWAP extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.SWAP(executionContext);
+    }
+
+}
+
+
+class SRL extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.SRL(executionContext);
+    }
+
+}
+
+
+class AddToSP extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.addToSP(executionContext);
+    }
+
+}
+
+
+class BIT extends InstructionStep {
+
+    private int bit;
+
+    BIT(int _bit) {
+        bit = _bit;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.BIT(executionContext, bit);
+    }
+
+}
+
+
+class RES extends InstructionStep {
+
+    private int bit;
+
+    RES(int _bit) {
+        bit = _bit;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.RES(executionContext, bit);
+    }
+
+}
+
+
+class SET extends InstructionStep {
+
+    private int bit;
+
+    SET(int _bit) {
+        bit = _bit;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.ALU.SET(executionContext, bit);
     }
 
 }
@@ -320,9 +520,34 @@ class IfZ extends InstructionStep {
 class IfNZ extends InstructionStep {
 
     void execute(ExecutionContext executionContext) {
-        if (executionContext.registers.getFlags().isZ()) {
-            executionContext.executeNextStep = false;
-        }
+        executionContext.executeNextStep = !executionContext.registers.getFlags().isZ();
+    }
+
+}
+
+
+class IfZ extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.executeNextStep = executionContext.registers.getFlags().isZ();
+    }
+
+}
+
+
+class IfNC extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.executeNextStep = !executionContext.registers.getFlags().isC();
+    }
+
+}
+
+
+class IfC extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.executeNextStep = executionContext.registers.getFlags().isC();
     }
 
 }
@@ -351,13 +576,38 @@ class JumpRelative extends InstructionStep {
 }
 
 
+class RST extends InstructionStep {
+
+    int destination;
+
+    RST(int _destination) {
+        destination = _destination;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        int jump = destination;
+        executionContext.registers.setPC(jump);
+        logger.trace("RST: {} .", StringUtils.toHex(jump));
+    }
+
+}
+
+
 class InternalDelay extends InstructionStep {
 
     InternalDelay() {
         consumesCycles = true;
     }
 
+    void execute(ExecutionContext executionContext) {}
+
+}
+
+
+class UseDataAsAddress extends InstructionStep {
+
     void execute(ExecutionContext executionContext) {
+        executionContext.setDataAddress(executionContext.getData());
     }
 
 }

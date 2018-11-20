@@ -67,23 +67,23 @@ class InstructionBuilder {
      * Arithmetic/Logical commands
      */
 
-    InstructionBuilder byteALUIncrement() {
-        instruction.addStep(new ByteALUIncrement());
+    InstructionBuilder INC() {
+        instruction.addStep(new INC());
         return this;
     }
 
-    InstructionBuilder byteALUDecrement() {
-        instruction.addStep(new ByteALUDecrement());
+    InstructionBuilder DEC() {
+        instruction.addStep(new DEC());
         return this;
     }
 
-    InstructionBuilder wordALUIncrement() {
-        instruction.addStep(new WordALUIncrement());
+    InstructionBuilder wordINC() {
+        instruction.addStep(new WordINC());
         return this;
     }
 
-    InstructionBuilder wordALUDecrement() {
-        instruction.addStep(new WordALUDecrement());
+    InstructionBuilder wordDEC() {
+        instruction.addStep(new WordDEC());
         return this;
     }
 
@@ -102,8 +102,23 @@ class InstructionBuilder {
         return this;
     }
 
+    InstructionBuilder ADC() {
+        instruction.addStep(new ADC());
+        return this;
+    }
+
     InstructionBuilder SUB() {
         instruction.addStep(new SUB());
+        return this;
+    }
+
+    InstructionBuilder SBC() {
+        instruction.addStep(new SBC());
+        return this;
+    }
+
+    InstructionBuilder AND() {
+        instruction.addStep(new AND());
         return this;
     }
 
@@ -112,8 +127,42 @@ class InstructionBuilder {
         return this;
     }
 
+    InstructionBuilder OR() {
+        instruction.addStep(new OR());
+        return this;
+    }
+
     InstructionBuilder CP() {
         instruction.addStep(new CP());
+        return this;
+    }
+
+    InstructionBuilder wordADD() {
+        instruction.addStep(new WordADD());
+        return this;
+    }
+
+
+    InstructionBuilder DAA() {
+        instruction.addStep(new DAA());
+        return this;
+    }
+
+
+    InstructionBuilder CPL() {
+        instruction.addStep(new CPL());
+        return this;
+    }
+
+
+    InstructionBuilder SCF() {
+        instruction.addStep(new SCF());
+        return this;
+    }
+
+
+    InstructionBuilder CCF() {
+        instruction.addStep(new CCF());
         return this;
     }
 
@@ -122,8 +171,63 @@ class InstructionBuilder {
         return this;
     }
 
+    InstructionBuilder RLCA() {
+        instruction.addStep(new RLCA());
+        return this;
+    }
+
+    InstructionBuilder RRA() {
+        instruction.addStep(new RRA());
+        return this;
+    }
+
+    InstructionBuilder RRCA() {
+        instruction.addStep(new RRCA());
+        return this;
+    }
+
     InstructionBuilder RL() {
         instruction.addStep(new RL());
+        return this;
+    }
+
+    InstructionBuilder RLC() {
+        instruction.addStep(new RLC());
+        return this;
+    }
+
+    InstructionBuilder RR() {
+        instruction.addStep(new RR());
+        return this;
+    }
+
+    InstructionBuilder RRC() {
+        instruction.addStep(new RRC());
+        return this;
+    }
+
+    InstructionBuilder SLA() {
+        instruction.addStep(new SLA());
+        return this;
+    }
+
+    InstructionBuilder SRA() {
+        instruction.addStep(new SRA());
+        return this;
+    }
+
+    InstructionBuilder SWAP() {
+        instruction.addStep(new SWAP());
+        return this;
+    }
+
+    InstructionBuilder SRL() {
+        instruction.addStep(new SRL());
+        return this;
+    }
+
+    InstructionBuilder addToSP() {
+        instruction.addStep(new AddToSP());
         return this;
     }
 
@@ -132,8 +236,18 @@ class InstructionBuilder {
      * Bit commands
      */
 
-    InstructionBuilder testBit(int bit) {
-        instruction.addStep(new TestBit(bit));
+    InstructionBuilder BIT(int bit) {
+        instruction.addStep(new BIT(bit));
+        return this;
+    }
+
+    InstructionBuilder RES(int bit) {
+        instruction.addStep(new RES(bit));
+        return this;
+    }
+
+    InstructionBuilder SET(int bit) {
+        instruction.addStep(new SET(bit));
         return this;
     }
 
@@ -142,13 +256,23 @@ class InstructionBuilder {
      * Flag commands
      */
 
+    InstructionBuilder ifNZ() {
+        instruction.addStep(new IfNZ());
+        return this;
+    }
+
     InstructionBuilder ifZ() {
         instruction.addStep(new IfZ());
         return this;
     }
 
-    InstructionBuilder ifNZ() {
-        instruction.addStep(new IfNZ());
+    InstructionBuilder ifNC() {
+        instruction.addStep(new IfNC());
+        return this;
+    }
+
+    InstructionBuilder ifC() {
+        instruction.addStep(new IfC());
         return this;
     }
 
@@ -167,6 +291,11 @@ class InstructionBuilder {
         return this;
     }
 
+    InstructionBuilder rst(int destination) {
+        instruction.addStep(new RST(destination));
+        return this;
+    }
+
 
     /**
      * Misc commands
@@ -174,6 +303,11 @@ class InstructionBuilder {
 
     InstructionBuilder internalDelay() {
         instruction.addStep(new InternalDelay());
+        return this;
+    }
+
+    InstructionBuilder useDataAsAddress() {
+        instruction.addStep(new UseDataAsAddress());
         return this;
     }
 

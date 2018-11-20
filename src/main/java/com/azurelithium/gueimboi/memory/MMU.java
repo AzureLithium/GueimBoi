@@ -1,5 +1,8 @@
 package com.azurelithium.gueimboi.memory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.TreeMap;
 
 public class MMU {
@@ -39,6 +42,9 @@ public class MMU {
 
     public void writeByte(int address, int value) {
         ram.writeByte(address, value);
+        if (address == 0xFF50 && value == 0x01) { // bootrom disabling
+            loadCartridge();
+        }
     }
 
     public int getMemRegister(MemRegister memRegister) {
@@ -49,6 +55,44 @@ public class MMU {
     public void setMemRegister(MemRegister memRegister, int value) {
         int memRegisterAddress = MemRegisterAddresses.get(memRegister);
         writeByte(memRegisterAddress, value);
+    }
+
+    public void loadCartridge() {
+        try {
+            byte[] bFile = Files
+                .readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\01-special.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\02-interrupts.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\03-op sp,hl.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\04-op r,imm.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\05-op rp.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\06-ld r,r.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\07-jr,jp,call,ret,rst.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\08-misc instrs.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\09-op r,r.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\10-bit ops.gb"));
+                //.readAllBytes(Paths.get(".\\src\\test\\resources\\blargg's_test_roms\\cpu_instrs\\11-op a,(hl).gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/01-special.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/02-interrupts.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/03-op sp,hl.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/04-op r,imm.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/05-op rp.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/06-ld r,r.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/07-jr,jp,call,ret,rst.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/08-misc instrs.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/09-op r,r.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/10-bit ops.gb"));
+                //.readAllBytes(Paths.get("./src/test/resources/blargg's_test_roms/cpu_instrs/11-op a,(hl).gb"));
+            ram.writeBytes(0x0000, convertToIntArray(bFile));
+        } catch (IOException e) {
+        } ;
+    }
+
+    public static int[] convertToIntArray(byte[] input) {
+        int[] ret = new int[input.length];
+        for (int i = 0; i < input.length; i++) {
+            ret[i] = input[i] & 0xff; // Range 0 to 255, not -128 to 127
+        }
+        return ret;
     }
 
 }

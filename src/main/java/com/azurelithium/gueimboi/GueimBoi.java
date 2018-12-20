@@ -1,66 +1,35 @@
 package com.azurelithium.gueimboi;
 
-import com.azurelithium.gueimboi.cpu.CPU;
-import com.azurelithium.gueimboi.memory.MMU;
-import com.azurelithium.gueimboi.gpu.GPU;
-import com.azurelithium.gueimboi.gui.Display;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.azurelithium.gueimboi.gui.MainWindow;
 
 /**
  * GueimBoi - GameBoy emulator
  */
 public class GueimBoi {
-
-    final static Logger logger = LoggerFactory.getLogger(GueimBoi.class);
-    
-    final static int GAMEBOY_CYCLE_RATE = 4194304;
-    final static int CYCLES_PER_FRAME = 70224;
-    static float delta;
-
-    static CPU CPU;
-    static MMU MMU;
-    static GPU GPU;
-    static Display display;
-    
     /**
      * Emulator entry point.
      * 
      * @param args The arguments of the program.
      */
-    public static void main(String[] args) {  
-        initialize();
-        start();
+    public static void main(String[] args) { 
+        MainWindow mainWindow = new MainWindow();
+        mainWindow.loadROM("src/test/resources/bgbtest.gb");
+        //mainWindow.loadROM("src/test/resources/blargg's_test_roms/cpu_instrs/halt_bug.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/div_write.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/rapid_toggle.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tim00.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tim00_div_trigger.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tim01.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tim01_div_trigger.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tim10.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tim10_div_trigger.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tim11.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tim11_div_trigger.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tima_reload.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tima_write_reloading.gb");
+        //mainWindow.loadROM("src/test/resources/gekkio's_test_roms/acceptance/timer/tma_write_reloading.gb");
+        mainWindow.initializeGameBoy();
+        mainWindow.startGameBoy();
     }
 
-    private static void initialize() {
-        logger.info("Initializing GueimBoi components.");
-        MMU = new MMU();
-        CPU = new CPU(MMU);
-        double frameRate = (double)GAMEBOY_CYCLE_RATE / CYCLES_PER_FRAME; // 59.727501 hz
-        display = new Display(frameRate);
-        GPU = new GPU(display, MMU);
-    }
-
-    private static void start() {
-        logger.info("Starting GueimBoi.");
-        run();
-    }
-
-    private static void run() {
-        int CPUtickFreq = 4;
-        display.initializeFrameTime();
-        while(true) {
-            int cycles = 0;
-            while (cycles < CYCLES_PER_FRAME) {
-                if (cycles % CPUtickFreq == 3) { // first tick as soon as posible => % 0, delayed first tick => % 3
-                    CPU.tick();    
-                }
-                GPU.tick();
-                cycles++;
-            }
-            display.waitRefresh();
-        }
-    }
 }

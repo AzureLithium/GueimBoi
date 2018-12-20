@@ -311,6 +311,26 @@ class InstructionBuilder {
         return this;
     }
 
+    InstructionBuilder scheduleIME() {
+        instruction.addStep(new ScheduleIME());
+        return this;
+    }
+
+    InstructionBuilder setIME() {
+        instruction.addStep(new SetIME());
+        return this;
+    }
+
+    InstructionBuilder resetIME() {
+        instruction.addStep(new ResetIME());
+        return this;
+    }
+
+    InstructionBuilder HALT() {
+        instruction.addStep(new HALT());
+        return this;
+    }
+
 
     /**
      * Build instruction

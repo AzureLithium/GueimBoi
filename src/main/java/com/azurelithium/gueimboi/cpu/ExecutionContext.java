@@ -5,24 +5,32 @@ import com.azurelithium.gueimboi.utils.StringUtils;
 
 public class ExecutionContext {
 
-    private long cycles;
-    private int data;
-    private int dataAddress;
-    boolean executeNextStep;
     Registers registers;
     MMU MMU;
     ALU ALU;
 
-    public long getCycles() {
-        return cycles;
+    private boolean IME;
+    private boolean scheduleIME;
+    boolean HALT;
+
+    private int data;
+    private int dataAddress;
+    boolean executeNextStep;
+
+    public boolean getScheduleIME() {
+        return scheduleIME;
     }
 
-    public void setCycles(long _cycles) {
-        cycles = _cycles;
+    public void setScheduleIME(boolean _scheduleIME) {
+        scheduleIME = _scheduleIME;
     }
 
-    void addCycles() {
-        cycles += 4;
+    public boolean getIME() {
+        return IME;
+    }
+
+    public void setIME(boolean _IME) {
+        IME = _IME;
     }
 
     int getData() {

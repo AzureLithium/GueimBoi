@@ -12,11 +12,13 @@ class PixelFIFO {
     private int lineOffset;
     private int pixelOffset;
     private int pixelsToIgnore;
+    private boolean LCDEnabled;
 
     PixelFIFO(GPURegisters gpuRegisters, Display _display) {
         pixelsToIgnore = gpuRegisters.getSCX();
         display = _display;
         lineOffset = gpuRegisters.getLY();
+        LCDEnabled = gpuRegisters.isLCDEnabled();
     }
 
     int size() {
@@ -48,7 +50,7 @@ class PixelFIFO {
         if (pixelsToIgnore > 0) {
             pixelsToIgnore--;
         } else {
-            display.setPixel(pixelOffset, lineOffset, pixel);
+            display.setPixel(pixelOffset, lineOffset, LCDEnabled ? pixel : 0);
             pixelOffset++;
         }
     }

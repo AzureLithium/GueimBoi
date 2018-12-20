@@ -1,7 +1,6 @@
 package com.azurelithium.gueimboi.cpu;
 
 import java.util.TreeMap;
-import java.util.Map.Entry;
 
 import com.azurelithium.gueimboi.utils.StringUtils;
 
@@ -56,9 +55,13 @@ class ISA {
 
         private void addControlInstructions() {
                 addInstruction(0x00, instructionBuilder.instruction(0x00, "NOP")); //does nothing
-                addInstruction(0x76, instructionBuilder.instruction(0x76, "HALT")); //does nothing at the moment
-                addInstruction(0xF3, instructionBuilder.instruction(0xF3, "DI")); //does nothing at the moment
-                addInstruction(0xFB, instructionBuilder.instruction(0xFB, "EI")); //does nothing at the moment
+                addInstruction(0x76, instructionBuilder.instruction(0x76, "HALT")
+                        .HALT()
+                );
+                addInstruction(0xF3, instructionBuilder.instruction(0xF3, "DI")
+                        .resetIME());
+                addInstruction(0xFB, instructionBuilder.instruction(0xFB, "EI")
+                        .scheduleIME());
         }
 
         private void addJumpInstructions() {
@@ -159,8 +162,9 @@ class ISA {
                         .pop(PC)
                         .internalDelay());
 
-                addInstruction(0xD9, instructionBuilder.instruction(0xD9, "RETI") //does not enable interrupts yet, they are still not supported
+                addInstruction(0xD9, instructionBuilder.instruction(0xD9, "RETI")
                         .pop(PC)
+                        .setIME()
                         .internalDelay());
 
                 addInstruction(0xCD, instructionBuilder.instruction(0xCD, "CALL a16")
@@ -672,11 +676,5 @@ class ISA {
 
         Instruction getInstruction(int opcode) {
                 return instructions.getOrDefault(opcode, null);
-        }
-
-        private void printISA() {
-                for (Entry<Integer, Instruction> entry : instructions.entrySet()) {
-                        System.out.printf("Instruction 0x%X => %s%n", entry.getKey(), entry.getValue().getMnemonic());
-                }
         }
 }

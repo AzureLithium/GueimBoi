@@ -611,3 +611,56 @@ class UseDataAsAddress extends InstructionStep {
     }
 
 }
+
+
+class ScheduleIME extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.setScheduleIME(true);
+    }
+
+}
+
+
+class SetIME extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.setIME(true);
+    }
+
+}
+
+
+class ResetIME extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.setIME(false);
+        executionContext.setScheduleIME(false);
+    }
+
+}
+
+
+class HALT extends InstructionStep {
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.HALT = true;
+    }
+
+}
+
+
+class INT extends InstructionStep {
+
+    int vector;
+
+    INT(int _vector) {
+        vector = _vector;
+    }
+
+    void execute(ExecutionContext executionContext) {
+        executionContext.registers.setPC(vector);
+        logger.trace("INT: {} .", StringUtils.toHex(vector));
+    }
+
+}

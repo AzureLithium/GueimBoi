@@ -5,7 +5,7 @@ import com.azurelithium.gueimboi.gui.Display;
 
 class PixelTransferMode extends GPUMode {
 
-    private final int PIXELS_PER_LINE = 160;    //LCD width
+    private final int PIXELS_PER_LINE;
 
     private int linePixelsShitfed;
 
@@ -14,6 +14,7 @@ class PixelTransferMode extends GPUMode {
     private boolean pixelFetcherTickSwitch;
 
     PixelTransferMode(Display display, GPURegisters _gpuRegisters) {
+        PIXELS_PER_LINE = display.getGameboyLCDWidth();
         pixelFIFO = new PixelFIFO(_gpuRegisters, display);
         pixelFetcher = new PixelFetcher(_gpuRegisters, pixelFIFO);
     }

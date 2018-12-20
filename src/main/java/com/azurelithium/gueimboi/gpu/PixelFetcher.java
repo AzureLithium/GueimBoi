@@ -79,7 +79,7 @@ class PixelFetcher {
         int[] BGP = gpuRegisters.getBGP();         
         for (int i=0; i<TILE_DIMENSION; i++) {
             mask = 1 << i;
-            int colorNumber = (((blockData1 & mask) >> i) << 1) + ((blockData2 & mask) >> i);
+            int colorNumber = (((blockData2 & mask) >> i) << 1) + ((blockData1 & mask) >> i);
             pixelBlock.addFirst(BGP[colorNumber]);
         }
         STATE = PixelFetcherState.READ_TILE_ID;

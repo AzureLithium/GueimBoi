@@ -10,74 +10,53 @@ import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class Display {
+import com.azurelithium.gueimboi.common.GameBoy;
 
-    class DisplayPanel extends JPanel {
+public class Display extends JPanel {
 
-        private BufferedImage img;
-        private Image scaled;
-    
-        DisplayPanel(BufferedImage _img) {
-            img = _img;
-        }
+    private static final long serialVersionUID = 695771422856595687L;
 
-        void setPixel(int x, int y, int rgb) {
-            img.setRGB(x, y, rgb);
-        }
-    
-        public void paint(Graphics g) {
-            super.paintComponent(g);
-            g.drawImage(scaled, 0, 0, Color.WHITE, null);
-        }
-    
-        public void invalidate() {
-            super.invalidate();
-            int width = getWidth();
-            int height = getHeight();
-    
-            if (width > 0 && height > 0) {
-                scaled = img.getScaledInstance(getWidth(), getHeight(),
-                Image.SCALE_SMOOTH);
-            }
-        }
-    
-        public Dimension getPreferredSize() {
-            return new Dimension(img.getWidth(this), img.getHeight(this));
-        }
-
-    }
-
-    private final long SECOND_IN_NS = 1000000000;
     private final int GAMEBOY_LCD_WIDTH = 160;
     private final int GAMEBOY_LCD_HEIGHT = 144;
 
     private final int[] COLORS = new int[] {
-        Color.WHITE.getRGB(), 
+        /*Color.WHITE.getRGB(), 
         Color.LIGHT_GRAY.getRGB(), 
         Color.DARK_GRAY.getRGB(), 
-        Color.BLACK.getRGB()
+        Color.BLACK.getRGB()*/
+        new Color(0xE0, 0xF8, 0xD0).getRGB(), 
+        new Color(0x88, 0xC0, 0x70).getRGB(), 
+        new Color(0x34, 0x68, 0x56).getRGB(), 
+        new Color(0x08, 0x18, 0x20).getRGB()
     };
 
     private JFrame frame;
-    private DisplayPanel displayPanel;
+    private BufferedImage img;
+    private Image scaled;
+
+    private final long SECOND_IN_NS = 1000000000;
+
+    private double delta = 1;
+    private double frameRate = (double)GameBoy.GAMEBOY_CYCLE_RATE / GameBoy.CYCLES_PER_FRAME;
+    private double nsInterval;
     private double lastFrame;
     private double lastFrameRateRefresh;
-    private int frames;
-    private double refreshRateSumatory;
-    private double nsInterval;
-    private double delta = 1;
+    private double frameTimeSumSinceLastFrameRateRefresh;
+    private int framesSinceLastFrameRateRefresh;
 
-    public Display(double _frameRate) {
-        nsInterval = SECOND_IN_NS / _frameRate;
-        frame = new JFrame();
-        displayPanel = new DisplayPanel(createGameboyLCD());
-        frame.add(displayPanel);
-        frame.pack();
-        frame.setSize(frame.getWidth() * 2, frame.getHeight() * 2);
-        frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-    } 
+    Display(JFrame _frame) {
+        frame = _frame;
+        img = createGameboyLCD();
+        nsInterval = SECOND_IN_NS / frameRate;
+    }
+
+    public int getGameboyLCDWidth() {
+        return GAMEBOY_LCD_WIDTH;
+    }
+
+    public int getGameboyLCDHeight() {
+        return GAMEBOY_LCD_HEIGHT;
+    }
 
     private BufferedImage createGameboyLCD() {
         BufferedImage bufferedImage = new BufferedImage(GAMEBOY_LCD_WIDTH, GAMEBOY_LCD_HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -87,8 +66,28 @@ public class Display {
         return bufferedImage;
     }
 
-    public void setPixel(int x, int y, int colorCode) {
-        displayPanel.setPixel(x, y, COLORS[colorCode]);
+    public void setPixel(int x, int y, int pixel) {
+        img.setRGB(x, y, COLORS[pixel]);
+    }
+
+    public void paint(Graphics g) {
+        super.paintComponent(g);
+        g.drawImage(scaled, 0, 0, Color.WHITE, null);
+    }
+
+    public void invalidate() {
+        super.invalidate();
+        int width = getWidth();
+        int height = getHeight();
+
+        if (width > 0 && height > 0) {
+            scaled = img.getScaledInstance(getWidth(), getHeight(),
+            Image.SCALE_SMOOTH);
+        }
+    }
+
+    public Dimension getPreferredSize() {
+        return new Dimension(img.getWidth(this), img.getHeight(this));
     }
 
     public void initializeFrameTime() {
@@ -99,36 +98,36 @@ public class Display {
     public void waitRefresh() {
         while (true) {
             delta = (System.nanoTime() - lastFrame) / nsInterval;
-            if (delta >= 1) { 
-                refresh();
-                updateFrameTime(); 
+            if (delta >= 1) {
+                refreshTitle();
+                updateFrameTime();
+                refreshDisplay();              
                 delta--;   
                 return;
             }
         }
     }
 
-    public void refresh() { 
+    void refreshTitle() {
         double currentFrame = System.nanoTime();
-        refreshRateSumatory += frameTime(currentFrame, lastFrame);
-        frames++;
-        if (currentFrame - lastFrameRateRefresh > SECOND_IN_NS / 10) {
-            frame.setTitle(String.format("GueimBoi | %.2f fps", refreshRateSumatory/frames));
-            lastFrameRateRefresh = lastFrameRateRefresh + SECOND_IN_NS / 10;
-            refreshRateSumatory = 0;
-            frames = 0;
-        }    
-        displayPanel.repaint();
-        displayPanel.revalidate();
-    }
-
-    private double frameTime(double currentFrame, double lastFrame) {
-        return SECOND_IN_NS / (currentFrame - lastFrame);
+        frameTimeSumSinceLastFrameRateRefresh += currentFrame - lastFrame;
+        framesSinceLastFrameRateRefresh++;
+        if (currentFrame - lastFrameRateRefresh > SECOND_IN_NS / 5) {
+            frame.setTitle(String.format("GueimBoi | %.2f fps", 
+                SECOND_IN_NS / (frameTimeSumSinceLastFrameRateRefresh/framesSinceLastFrameRateRefresh)));
+            lastFrameRateRefresh += SECOND_IN_NS / 5;
+            frameTimeSumSinceLastFrameRateRefresh = 0;
+            framesSinceLastFrameRateRefresh = 0;
+        }       
     }
 
     public void updateFrameTime() {
         lastFrame += nsInterval;
     }
+
+    void refreshDisplay() {
+        repaint();
+        revalidate();
+    }
     
 }
-

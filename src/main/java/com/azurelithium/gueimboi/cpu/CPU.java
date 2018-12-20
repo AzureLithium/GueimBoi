@@ -12,13 +12,16 @@ public class CPU extends Component {
     final Logger logger = LoggerFactory.getLogger(getClass());
 
     private enum CPUState {
-        FETCH_OPCODE,
-        FETCH_OPCODE_SUFFIX,
-        RUN_INSTRUCTION
+        HALT,
+        FETCH_OPCODE, 
+        FETCH_OPCODE_SUFFIX, 
+        RUN_INSTRUCTION        
     }
+
     private CPUState CPU_STATE = CPUState.FETCH_OPCODE;
 
     private Registers registers;
+    private InterruptManager interruptManager;
     private ALU ALU;
     private MMU MMU;
     private ISA ISA;
@@ -26,14 +29,16 @@ public class CPU extends Component {
 
     private ListIterator<InstructionStep> instructionStepIterator;
     private boolean mustEndTick;
+    private boolean halt_bug;
 
-    public CPU(MMU _MMU) {        
-        registers = new Registers();    
+    public CPU(MMU _MMU) {
+        registers = new Registers();
         ALU = new ALU();
-        MMU = _MMU;        
+        MMU = _MMU;
         ISA = new ISA();
         executionContext = new ExecutionContext();
-        initializeExecutionContext();      
+        interruptManager = new InterruptManager(executionContext, MMU);
+        initializeExecutionContext();
     }
 
     public ExecutionContext getExecutionContext() {
@@ -41,10 +46,10 @@ public class CPU extends Component {
     }
 
     private void initializeExecutionContext() {
-        executionContext.executeNextStep = true;      
+        executionContext.executeNextStep = true;
         executionContext.registers = registers;
         executionContext.ALU = ALU;
-        executionContext.MMU = MMU;        
+        executionContext.MMU = MMU;
     }
 
     public int getPC() {
@@ -52,40 +57,68 @@ public class CPU extends Component {
     }
 
     public void tick() {
-        while(!mustEndTick) {
+        while (!mustEndTick) {
             switch (CPU_STATE) {
-                case FETCH_OPCODE:
-                    fetchOpcode();
+                case HALT:
+                    if (interruptManager.isAnyInterruptRequestedAndEnabled()) {
+                        CPU_STATE = CPUState.FETCH_OPCODE;
+                    }
                     return;
+                case FETCH_OPCODE:
+                    if (executionContext.HALT) {
+                        executionContext.HALT = false;
+                        if (!interruptManager.isAnyInterruptRequestedAndEnabled()) {
+                            CPU_STATE = CPUState.HALT;
+                            return;
+                        }
+                        if (!executionContext.getIME() && interruptManager.isAnyInterruptRequestedAndEnabled()) {
+                            halt_bug = true;
+                        }
+                    }
+                    ListIterator<InstructionStep> interruptVector = interruptManager.checkInterrupts();
+                    if (interruptVector != null) {
+                        instructionStepIterator = interruptVector;
+                        CPU_STATE = CPUState.RUN_INSTRUCTION;
+                        break;
+                    }
+                    interruptManager.checkScheduleIME();
+                    fetchOpcode();
+                    break;
                 case FETCH_OPCODE_SUFFIX:
                     fetchOpcodeSuffix();
-                    return;
+                    break;
                 case RUN_INSTRUCTION:
                     executeInstruction();
                     break;
             }
         }
-        mustEndTick = false;     
-    }
+        mustEndTick = false;
+    }    
 
     private void fetchOpcode() {
         int instructionAddress = registers.getPC();
         int opcode = MMU.readByte(registers.getPC());
-        ALU.incrementPC(executionContext, Byte.BYTES);
-        executionContext.addCycles();
+        mustEndTick = true;
+        if (!halt_bug) {
+            ALU.incrementPC(executionContext, Byte.BYTES);
+        } else {
+            halt_bug = false;
+        }
         if (opcode == 0xCB) {
             CPU_STATE = CPUState.FETCH_OPCODE_SUFFIX;
             return;
         }
         retrieveInstruction(opcode, instructionAddress);
-   }
+        executeInstruction();
+    }
 
     private void fetchOpcodeSuffix() {
         int instructionAddress = registers.getPC();
         int opcode = 0xCB00 + MMU.readByte(registers.getPC());
+        mustEndTick = true;
         ALU.incrementPC(executionContext, Byte.BYTES);
-        executionContext.addCycles();
         retrieveInstruction(opcode, instructionAddress);
+        executeInstruction();
     }
 
     private void retrieveInstruction(int opcode, int instructionAddress) {
@@ -93,31 +126,29 @@ public class CPU extends Component {
         if (instruction == null) {
             logger.error("Operation {} not recognized at address {}, aborting GueimBoi...",
                     StringUtils.toHex(opcode), StringUtils.toHex(instructionAddress));
-            logger.info("Cycles: {}", executionContext.getCycles());
             System.exit(1);
         }
-
-        logger.trace("Fetched instruction {} at address {}.", instruction, StringUtils.toHex(instructionAddress));
+        logger.trace("Fetched instruction {} at address {}.", instruction,
+                StringUtils.toHex(instructionAddress));
 
         instructionStepIterator = instruction.getInstructionStepIterator();
         CPU_STATE = CPUState.RUN_INSTRUCTION;
     }
 
-    private void executeInstruction() {  
+    private void executeInstruction() {
         while (instructionStepIterator.hasNext() && executionContext.executeNextStep) {
-            InstructionStep instructionStep = instructionStepIterator.next();  
+            InstructionStep instructionStep = instructionStepIterator.next();
             if (!instructionStep.doesConsumeCycles()) {
                 instructionStep.execute(executionContext);
             } else if (!mustEndTick) {
                 instructionStep.execute(executionContext);
-                executionContext.addCycles();
                 mustEndTick = true;
             } else {
                 instructionStepIterator.previous();
                 return;
-            }    
+            }
         }
-        executionContext.executeNextStep = true; 
+        executionContext.executeNextStep = true;
         CPU_STATE = CPUState.FETCH_OPCODE;
     }
 

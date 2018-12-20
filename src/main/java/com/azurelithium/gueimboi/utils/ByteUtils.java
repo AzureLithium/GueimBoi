@@ -1,7 +1,5 @@
 package com.azurelithium.gueimboi.utils;
 
-import static com.google.common.base.Preconditions.checkPositionIndex;
-
 public final class ByteUtils {
 
     /**
@@ -48,8 +46,9 @@ public final class ByteUtils {
      */
 
     private static void checkIntPosition(String argumentName, int position) {
-        checkPositionIndex(position, Short.SIZE - 1,
-                "Position " + position + "is inaccessible in " + argumentName);
+        if (position < 0 || position >= Short.SIZE) {
+            throw new IndexOutOfBoundsException("Position " + position + "is inaccessible in " + argumentName);
+        }
     }
 
 }

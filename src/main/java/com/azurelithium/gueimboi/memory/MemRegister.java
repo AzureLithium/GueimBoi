@@ -1,7 +1,10 @@
 package com.azurelithium.gueimboi.memory;
 
 import com.azurelithium.gueimboi.common.GameBoy;
+import com.azurelithium.gueimboi.joypad.Input;
+import com.azurelithium.gueimboi.joypad.InputController;
 import com.azurelithium.gueimboi.timer.Timer;
+import com.azurelithium.gueimboi.utils.ByteUtils;
 
 class MemRegister {
 
@@ -32,6 +35,41 @@ class MemRegister {
     void controlledWrite(int value) {
         write(value);
     }
+}
+
+
+class JOYP extends MemRegister {
+
+    private InputController joypad;
+
+    JOYP(Memory _memory, int _memRegisterAddress, InputController _joypad) {
+        super(_memory, _memRegisterAddress);
+        joypad = _joypad;
+    }
+
+    int read() {
+        return super.read() | 0xC0;
+    }
+
+    void write(int value) {
+        super.write(value | 0xC0);
+    }
+
+    int controlledRead() {
+        int JOYP = read() | 0xF;
+        for (Input i : joypad.getPressedInputs()) {
+            if (!ByteUtils.getBit(JOYP, i.getSelectBit())) {
+                JOYP = ByteUtils.resetBit(JOYP, i.getPressedBit());
+            }
+        }
+        return JOYP;
+    }
+
+    protected void controlledWrite(int value) {
+        int JOYP = read();
+        write((JOYP & 0xCF) | (value & 0x30));
+    }
+
 }
 
 
@@ -189,8 +227,10 @@ class ROM_DISABLE extends MemRegister {
     }
 
     void controlledWrite(int value) {
-        memory.writeByte(memRegisterAddress, value);
-        if (value == 0x01) { // bootrom disabling
+        // bootrom disabling
+        int ROM_DISABLE = read(); 
+        if (ROM_DISABLE != 0x01 && value == 0x01) { 
+            memory.writeByte(memRegisterAddress, value);
             MMU.loadCartridge();
         }
     }

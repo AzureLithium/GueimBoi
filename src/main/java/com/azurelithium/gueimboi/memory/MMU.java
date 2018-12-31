@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.TreeMap;
+
 import com.azurelithium.gueimboi.memory.MemRegisterEnum;
+import com.azurelithium.gueimboi.joypad.InputController;
 import com.azurelithium.gueimboi.timer.Timer;
 
 public class MMU {
@@ -13,6 +15,7 @@ public class MMU {
     private TreeMap<Integer, MemRegister> MemRegisterByAddress;
 
     private Memory memory;
+    private InputController joypad;
     private Timer timer;
     private String ROMPath; 
     private int serialChars = 0;
@@ -32,15 +35,26 @@ public class MMU {
         return serialContent;
     }
 
+    public void setInputController(InputController _joypad) {
+        joypad = _joypad;
+    }
+
     public void setTimer(Timer _timer) {
         timer = _timer;
     }
 
     public void initializeMemRegisters() {
+        initializeJoypadMemRegisters();
         initializeTimerMemRegisters();
         initializeGPUMemRegisters();
         initializeInterruptsMemRegisters();
         initializeControlMemRegisters();
+    }
+
+    public void initializeJoypadMemRegisters() {
+        JOYP JOYP = new JOYP(memory, 0xFF00, joypad);
+        MemRegisterByEnum.put(MemRegisterEnum.JOYP, JOYP);
+        MemRegisterByAddress.put(JOYP.getAddress(), JOYP);
     }
 
     public void initializeTimerMemRegisters() {
@@ -101,7 +115,6 @@ public class MMU {
     }
 
     public int readByte(int address) {
-        if (address == 0xFF00) return 0xEF; //debug purposes - joypad port
         if (MemRegisterByAddress.containsKey(address)) {
             return MemRegisterByAddress.get(address).controlledRead();
         } else {

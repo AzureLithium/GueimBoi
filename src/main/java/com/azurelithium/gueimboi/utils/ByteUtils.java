@@ -12,7 +12,7 @@ public final class ByteUtils {
     }
 
     public static int getMSB(int value) {
-        return (value >> 8) & 0xFF;
+        return (value >> Byte.SIZE) & 0xFF;
     }
 
     public static int getLSB(int value) {
@@ -24,7 +24,7 @@ public final class ByteUtils {
      */
 
     public static int toWord(int MSB, int LSB) {
-        return ((MSB & 0xFF) << 8 | LSB & 0xFF);
+        return ((MSB & 0xFF) << Byte.SIZE | LSB & 0xFF);
     }
 
     /**

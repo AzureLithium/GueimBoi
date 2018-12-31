@@ -4,6 +4,7 @@ import com.azurelithium.gueimboi.common.Component;
 import com.azurelithium.gueimboi.gui.Display;
 import com.azurelithium.gueimboi.memory.MMU;
 import com.azurelithium.gueimboi.memory.MemRegisterEnum;
+import com.azurelithium.gueimboi.utils.ByteUtils;
 
 public class GPU extends Component {
 
@@ -29,7 +30,7 @@ public class GPU extends Component {
 
         boolean isLCDEnabled() {
             int LCDC = getLCDC();
-            return ((LCDC & 1 << LCD_ENABLED_BIT) != 0);
+            return ByteUtils.getBit(LCDC,LCD_ENABLED_BIT);
         }
 
         int getSTAT() {
@@ -42,12 +43,12 @@ public class GPU extends Component {
 
         int getBGTileMapAddress() {
             int LCDC = getLCDC();
-            return ((LCDC & 1 << BG_TILE_MAP_ADDRESS_BIT) == 0 ? BG_TILE_MAP_ADDRESS_0 : BG_TILE_MAP_ADDRESS_1);
+            return (ByteUtils.getBit(LCDC, BG_TILE_MAP_ADDRESS_BIT) ? BG_TILE_MAP_ADDRESS_1 : BG_TILE_MAP_ADDRESS_0);
         }
 
         int getTileDataAddress() {
             int LCDC = getLCDC();
-            return ((LCDC & 1 << TILE_DATA_ADDRESS_BIT) == 0 ? TILE_DATA_ADDRESS_0 : TILE_DATA_ADDRESS_1);
+            return (ByteUtils.getBit(LCDC, TILE_DATA_ADDRESS_BIT) ? TILE_DATA_ADDRESS_1 : TILE_DATA_ADDRESS_0);
         }        
 
         int getSCY() {
@@ -79,6 +80,8 @@ public class GPU extends Component {
         }
 
     }
+
+    private final int VBLANK_INT_REQUEST_BIT = 0;
 
     private final int HBLANK_EARLIEST_START_TICK = 252;
     private final int VBLANK_START_LINE;
@@ -148,7 +151,7 @@ public class GPU extends Component {
 
     private void requestVBlankInterrupt() {
         int IF = gpuRegisters.mmu.getMemRegister(MemRegisterEnum.IF);
-        IF |= 1 << 0;
+        IF = ByteUtils.setBit(IF, VBLANK_INT_REQUEST_BIT);
         gpuRegisters.mmu.setMemRegister(MemRegisterEnum.IF, IF);
     }
 

@@ -5,6 +5,7 @@ import com.azurelithium.gueimboi.memory.MMU;
 import com.azurelithium.gueimboi.timer.Timer;
 import com.azurelithium.gueimboi.gpu.GPU;
 import com.azurelithium.gueimboi.gui.Display;
+import com.azurelithium.gueimboi.joypad.InputController;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,16 +18,19 @@ public class GameBoy {
     public final static int CYCLES_PER_FRAME = 70224;
     public final static int CYCLES_PER_CPU_TICK = 4;
 
-    CPU CPU;
-    MMU MMU;
-    GPU GPU;
-    Display display;
-    Timer timer;
     String ROMPath;
+    Display display;
     Thread gameboyThread;
 
-    public GameBoy(Display _display, String _ROMPath) {
+    CPU CPU;
+    MMU MMU;
+    GPU GPU;    
+    InputController joypad;
+    Timer timer;
+
+    public GameBoy(Display _display, InputController _joypad, String _ROMPath) {
         display = _display;
+        joypad = _joypad;
         ROMPath = _ROMPath;
     }
 
@@ -36,7 +40,9 @@ public class GameBoy {
         CPU = new CPU(MMU);        
         GPU = new GPU(display, MMU);
         timer = new Timer(MMU);
-        MMU.setTimer(timer);
+        MMU.setTimer(timer); 
+        MMU.setInputController(joypad);
+        joypad.setMMU(MMU);
         MMU.initializeMemRegisters();
     }
 

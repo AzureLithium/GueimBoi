@@ -1,6 +1,7 @@
 package com.azurelithium.gueimboi.memory;
 
 public enum MemRegisterEnum {
+    JOYP,
     DIVLSB,
     DIV,
     TIMA,

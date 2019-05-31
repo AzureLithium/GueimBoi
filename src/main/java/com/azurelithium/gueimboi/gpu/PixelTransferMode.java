@@ -13,7 +13,7 @@ class PixelTransferMode extends GPUMode {
     private PixelFetcher pixelFetcher;
     private boolean pixelFetcherTickSwitch;
 
-    PixelTransferMode(Display display, GPURegisters _gpuRegisters) {
+    PixelTransferMode(GPURegisters _gpuRegisters, Display display) {
         PIXELS_PER_LINE = display.getGameboyLCDWidth();
         pixelFIFO = new PixelFIFO(_gpuRegisters, display);
         pixelFetcher = new PixelFetcher(_gpuRegisters, pixelFIFO);

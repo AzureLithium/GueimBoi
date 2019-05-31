@@ -10,6 +10,9 @@ public class GPU extends Component {
 
     class GPURegisters {
 
+        final int BG_DISPLAY_ENABLED_BIT = 0;
+        final int OBJ_DISPLAY_ENABLED_BIT = 1;
+        final int OBJ_DOUBLE_SPRITE_SIZE_BIT = 2;
         final int BG_TILE_MAP_ADDRESS_BIT = 3;
         final int BG_TILE_MAP_ADDRESS_0 = 0x9800;
         final int BG_TILE_MAP_ADDRESS_1 = 0x9C00;
@@ -30,7 +33,22 @@ public class GPU extends Component {
 
         boolean isLCDEnabled() {
             int LCDC = getLCDC();
-            return ByteUtils.getBit(LCDC,LCD_ENABLED_BIT);
+            return ByteUtils.getBit(LCDC, LCD_ENABLED_BIT);
+        }
+
+        boolean isBGEnabled() {
+            int LCDC = getLCDC();
+            return ByteUtils.getBit(LCDC, BG_DISPLAY_ENABLED_BIT);
+        }
+
+        boolean isOBJEnabled() {
+            int LCDC = getLCDC();
+            return ByteUtils.getBit(LCDC, OBJ_DISPLAY_ENABLED_BIT);
+        }
+
+        boolean isOBJDoubleSizeEnabled() {
+            int LCDC = getLCDC();
+            return ByteUtils.getBit(LCDC, OBJ_DOUBLE_SPRITE_SIZE_BIT);
         }
 
         int getSTAT() {
@@ -66,6 +84,10 @@ public class GPU extends Component {
         void incrementLY() {
             int LY = getLY();
             mmu.setMemRegister(MemRegisterEnum.LY, ++LY % LINES_PER_FRAME);
+        }
+
+        void resetLY() {
+            mmu.setMemRegister(MemRegisterEnum.LY, 0);
         }
 
         int[] getBGP() {
@@ -110,13 +132,14 @@ public class GPU extends Component {
     }
 
     public void tick() {
+        if (!gpuRegisters.isLCDEnabled()) return;
         gpuMode.tick();
         ticksInLine++;
         if (gpuMode.isFinished()) {
             switch (GPU_MODE) {
                 case OAM_SEARCH:                    
                     GPU_MODE = Mode.PIXEL_TRANSFER;
-                    gpuMode = new PixelTransferMode(display, gpuRegisters);
+                    gpuMode = new PixelTransferMode(gpuRegisters, display);
                     break;
                 case PIXEL_TRANSFER:
                     GPU_MODE = Mode.HBLANK;
@@ -147,6 +170,13 @@ public class GPU extends Component {
             }
             setSTATMode(GPU_MODE.ordinal());
         }
+    }
+
+    public void reset() {
+        gpuRegisters.resetLY();
+        ticksInLine = 0;
+        GPU_MODE = Mode.OAM_SEARCH;                        
+        gpuMode = new OAMSearchMode();
     }
 
     private void requestVBlankInterrupt() {

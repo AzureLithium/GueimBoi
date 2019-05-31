@@ -129,5 +129,9 @@ public class Display extends JPanel {
         repaint();
         revalidate();
     }
+
+    public void clear() {
+        img = createGameboyLCD();
+    }
     
 }

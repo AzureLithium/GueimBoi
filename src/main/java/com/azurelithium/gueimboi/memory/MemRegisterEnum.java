@@ -12,8 +12,9 @@ public enum MemRegisterEnum {
     SCY, 
     SCX, 
     LY, 
-    LYC, 
-    BGP, 
+    LYC,
+    DMA, 
+    BGP,
     ROM_DISABLE,
     IF,
     IE 

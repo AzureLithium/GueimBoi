@@ -6,6 +6,9 @@ import java.nio.file.Paths;
 import java.util.TreeMap;
 
 import com.azurelithium.gueimboi.memory.MemRegisterEnum;
+import com.azurelithium.gueimboi.dma.DMAController;
+import com.azurelithium.gueimboi.gpu.GPU;
+import com.azurelithium.gueimboi.gui.Display;
 import com.azurelithium.gueimboi.joypad.InputController;
 import com.azurelithium.gueimboi.timer.Timer;
 
@@ -14,9 +17,13 @@ public class MMU {
     private TreeMap<MemRegisterEnum, MemRegister> MemRegisterByEnum;
     private TreeMap<Integer, MemRegister> MemRegisterByAddress;
 
+    private GPU GPU;
+    private Display display;
     private Memory memory;
     private InputController joypad;
     private Timer timer;
+    private DMAController DMAController;
+
     private String ROMPath; 
     private int serialChars = 0;
     private final int serialContentCapacity = 512; 
@@ -35,12 +42,24 @@ public class MMU {
         return serialContent;
     }
 
+    public void setGPU(GPU _GPU) {
+        GPU = _GPU;
+    }
+
+    public void setDisplay(Display _display) {
+        display = _display;
+    }
+
     public void setInputController(InputController _joypad) {
         joypad = _joypad;
     }
 
     public void setTimer(Timer _timer) {
         timer = _timer;
+    }
+
+    public void setDMAController(DMAController _DMAController) {
+        DMAController = _DMAController;
     }
 
     public void initializeMemRegisters() {
@@ -76,7 +95,7 @@ public class MMU {
     }
 
     public void initializeGPUMemRegisters() {
-        MemRegister LCDC = new MemRegister(memory, 0xFF40);
+        LCDC LCDC = new LCDC(memory, 0xFF40, GPU, display);
         STAT STAT = new STAT(memory, 0xFF41);
         MemRegister SCY = new MemRegister(memory, 0xFF42);
         MemRegister SCX = new MemRegister(memory, 0xFF43);
@@ -109,6 +128,9 @@ public class MMU {
     }
 
     public void initializeControlMemRegisters() {
+        DMA DMA = new DMA(memory, 0xFF46, DMAController);
+        MemRegisterByEnum.put(MemRegisterEnum.DMA, DMA);
+        MemRegisterByAddress.put(DMA.getAddress(), DMA);
         ROM_DISABLE ROM_DISABLE = new ROM_DISABLE(memory, 0xFF50, this);
         MemRegisterByEnum.put(MemRegisterEnum.ROM_DISABLE, ROM_DISABLE);
         MemRegisterByAddress.put(ROM_DISABLE.getAddress(), ROM_DISABLE);
@@ -117,19 +139,27 @@ public class MMU {
     public int readByte(int address) {
         if (MemRegisterByAddress.containsKey(address)) {
             return MemRegisterByAddress.get(address).controlledRead();
-        } else {
-            return memory.readByte(address);
         }
+
+        return memory.readByte(address);
     }
 
     public void writeByte(int address, int value) {
         if (address == 0xFF01) { //automated test purposes - Blargg's test write ASCII chars here
             serialContent.insert(serialChars++, (char)value);
         }
+
         if (MemRegisterByAddress.containsKey(address)) {
             MemRegisterByAddress.get(address).controlledWrite(value);
         } else {
             memory.writeByte(address, value & 0xFF);
+
+            // WRAM ECHO
+            if (address >= 0xC000 && address <= 0xDDFF) {
+                memory.writeByte(address + 0x2000, value & 0xFF);
+            } else if (address >= 0xE000 && address <= 0xFDFF) {
+                memory.writeByte(address - 0x2000, value & 0xFF);
+            }
         }
     }
 

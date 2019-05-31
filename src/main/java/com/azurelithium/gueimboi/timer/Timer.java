@@ -58,13 +58,13 @@ public class Timer extends Component {
 
         if (overflow) {
             ticksSinceOverflow++;
-            if (ticksSinceOverflow == GameBoy.CYCLES_PER_CPU_TICK) {  
+            if (ticksSinceOverflow == GameBoy.CYCLES_PER_M_CYCLE) {  
                 setTIMA(getTMA());
                 if (!IFOverride) {
                     requestTimerInterrupt();
                 }
             }
-            if (ticksSinceOverflow > GameBoy.CYCLES_PER_CPU_TICK) {
+            if (ticksSinceOverflow > GameBoy.CYCLES_PER_M_CYCLE) {
                 unsetOverflow();
             }
         }

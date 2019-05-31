@@ -1,6 +1,9 @@
 package com.azurelithium.gueimboi.memory;
 
 import com.azurelithium.gueimboi.common.GameBoy;
+import com.azurelithium.gueimboi.dma.DMAController;
+import com.azurelithium.gueimboi.gpu.GPU;
+import com.azurelithium.gueimboi.gui.Display;
 import com.azurelithium.gueimboi.joypad.Input;
 import com.azurelithium.gueimboi.joypad.InputController;
 import com.azurelithium.gueimboi.timer.Timer;
@@ -119,7 +122,7 @@ class TIMA extends MemRegister {
     }
 
     void controlledWrite(int value) {
-        if (timer.getTicksSinceOverflow() < GameBoy.CYCLES_PER_CPU_TICK) {    // normal or in overflow
+        if (timer.getTicksSinceOverflow() < GameBoy.CYCLES_PER_M_CYCLE) {    // normal or in overflow
             write(value);
             timer.unsetOverflow();
         }
@@ -139,7 +142,7 @@ class TMA extends MemRegister {
 
     void controlledWrite(int value) {
         write(value);
-        if (timer.getTicksSinceOverflow() >= GameBoy.CYCLES_PER_CPU_TICK) {   // just after overflow        
+        if (timer.getTicksSinceOverflow() >= GameBoy.CYCLES_PER_M_CYCLE) {   // just after overflow        
             timer.setTIMA(value);
         }
     }
@@ -187,9 +190,32 @@ class IF extends MemRegister {
 
     void controlledWrite(int value) {
         write(value);
-        if (timer.getTicksSinceOverflow() >= GameBoy.CYCLES_PER_CPU_TICK) {   // just after overflow
+        if (timer.getTicksSinceOverflow() >= GameBoy.CYCLES_PER_M_CYCLE) {   // just after overflow
             timer.setIFOverride();
         }
+    }
+
+}
+
+
+class LCDC extends MemRegister {
+
+    private GPU GPU;
+    private Display display;
+
+    LCDC(Memory _memory, int _memRegisterAddress, GPU _GPU, Display _display) {
+        super(_memory, _memRegisterAddress);
+        GPU = _GPU;
+        display = _display;
+    }
+
+    void controlledWrite(int value) {
+        int LCDC = read();
+        if ((LCDC & 0xC0) != 0 && (value & 0xC0) == 0) {
+            GPU.reset();
+            display.clear();
+        }
+        write(value);
     }
 
 }
@@ -212,6 +238,25 @@ class STAT extends MemRegister {
     void controlledWrite(int value) {
         int STAT = read();
         write((value & 0x78) | STAT);
+    }
+
+}
+
+
+class DMA extends MemRegister {
+
+    private DMAController DMAController;
+
+    DMA(Memory memory, int memRegisterAddress, DMAController _DMAController) {
+        super(memory, memRegisterAddress);
+        DMAController = _DMAController;
+    }
+
+    void controlledWrite(int value) {
+        if (value >= 0x00 && value <= 0xF1) { // supported range
+            write(value);
+            DMAController.startTransfer(value << Byte.SIZE);
+        }
     }
 
 }

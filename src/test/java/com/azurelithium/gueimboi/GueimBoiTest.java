@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 public class GueimBoiTest {
 
     final static Logger logger = LoggerFactory.getLogger(GueimBoiTest.class);
-    final static String testResourcesPath = "E:/gueimboi/src/test/resources/";
-    //final static String testResourcesPath = "/media/jlario/gueimboi/src/test/resources/";
+    final static String testResourcesPath = "D:/gueimboi/src/test/resources/";
+    // final static String testResourcesPath = "/media/jlario/JAVI/gueimboi/src/test/resources/";
 
     @Test
     public void testBlarggCPUInstrs_01_SPECIAL() {

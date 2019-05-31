@@ -12,13 +12,13 @@ class PixelFIFO {
     private int lineOffset;
     private int pixelOffset;
     private int pixelsToIgnore;
-    private boolean LCDEnabled;
+    private GPURegisters gpuRegisters;
 
-    PixelFIFO(GPURegisters gpuRegisters, Display _display) {
+    PixelFIFO(GPURegisters _gpuRegisters, Display _display) {
+        gpuRegisters = _gpuRegisters;
         pixelsToIgnore = gpuRegisters.getSCX();
+        lineOffset = gpuRegisters.getLY();        
         display = _display;
-        lineOffset = gpuRegisters.getLY();
-        LCDEnabled = gpuRegisters.isLCDEnabled();
     }
 
     int size() {
@@ -34,7 +34,7 @@ class PixelFIFO {
     }
 
     boolean canInsertBlock() {
-        return pixelFIFO.size() <= 8;
+        return pixelFIFO.size() <= Byte.SIZE;
     }
 
     void insertBlock(LinkedList<Integer> block) {
@@ -42,7 +42,7 @@ class PixelFIFO {
     }
 
     boolean canShift() {
-        return pixelFIFO.size() > 8;
+        return pixelFIFO.size() > Byte.SIZE;
     }
 
     void shift() {
@@ -50,7 +50,7 @@ class PixelFIFO {
         if (pixelsToIgnore > 0) {
             pixelsToIgnore--;
         } else {
-            display.setPixel(pixelOffset, lineOffset, LCDEnabled ? pixel : 0);
+            display.setPixel(pixelOffset, lineOffset, gpuRegisters.isBGEnabled() ? pixel : 0);
             pixelOffset++;
         }
     }

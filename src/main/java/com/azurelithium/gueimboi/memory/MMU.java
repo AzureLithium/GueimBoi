@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.TreeMap;
 
-import com.azurelithium.gueimboi.memory.MemRegisterEnum;
 import com.azurelithium.gueimboi.dma.DMAController;
 import com.azurelithium.gueimboi.gpu.GPU;
 import com.azurelithium.gueimboi.gui.Display;
@@ -102,20 +101,26 @@ public class MMU {
         MemRegister LY = new MemRegister(memory, 0xFF44);
         MemRegister LYC = new MemRegister(memory, 0xFF45);
         MemRegister BGP = new MemRegister(memory, 0xFF47);
+        MemRegister OBP0 = new MemRegister(memory, 0xFF48);
+        MemRegister OBP1 = new MemRegister(memory, 0xFF49);
         MemRegisterByEnum.put(MemRegisterEnum.LCDC, LCDC);
         MemRegisterByEnum.put(MemRegisterEnum.STAT, STAT);
         MemRegisterByEnum.put(MemRegisterEnum.SCY, SCY);
         MemRegisterByEnum.put(MemRegisterEnum.SCX, SCX);
         MemRegisterByEnum.put(MemRegisterEnum.LY, LY);
         MemRegisterByEnum.put(MemRegisterEnum.LYC, LYC);
-        MemRegisterByEnum.put(MemRegisterEnum.BGP, BGP);
+        MemRegisterByEnum.put(MemRegisterEnum.BGP, BGP);        
+        MemRegisterByEnum.put(MemRegisterEnum.OBP0, OBP0);
+        MemRegisterByEnum.put(MemRegisterEnum.OBP1, OBP1);
         MemRegisterByAddress.put(LCDC.getAddress(), LCDC);
         MemRegisterByAddress.put(STAT.getAddress(), STAT);
         MemRegisterByAddress.put(SCY.getAddress(), SCY);
         MemRegisterByAddress.put(SCX.getAddress(), SCX);
         MemRegisterByAddress.put(LY.getAddress(), LY);
         MemRegisterByAddress.put(LYC.getAddress(), LYC);
-        MemRegisterByAddress.put(BGP.getAddress(), BGP);
+        MemRegisterByAddress.put(BGP.getAddress(), BGP);        
+        MemRegisterByAddress.put(OBP0.getAddress(), OBP0);
+        MemRegisterByAddress.put(OBP1.getAddress(), OBP1);
     }
 
     public void initializeInterruptsMemRegisters() {
@@ -145,6 +150,10 @@ public class MMU {
     }
 
     public void writeByte(int address, int value) {
+        if (address >= 0x0000 && address <= 0x7FFF) { // ignore ROM writes
+            return;
+        }
+
         if (address == 0xFF01) { //automated test purposes - Blargg's test write ASCII chars here
             serialContent.insert(serialChars++, (char)value);
         }

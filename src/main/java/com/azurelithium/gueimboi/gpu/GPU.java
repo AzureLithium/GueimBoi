@@ -1,5 +1,7 @@
 package com.azurelithium.gueimboi.gpu;
 
+import java.util.LinkedList;
+
 import com.azurelithium.gueimboi.common.Component;
 import com.azurelithium.gueimboi.gui.Display;
 import com.azurelithium.gueimboi.memory.MMU;
@@ -59,15 +61,38 @@ public class GPU extends Component {
             mmu.setMemRegister(MemRegisterEnum.STAT, value);
         }
 
+        void setSTATLYCFlag(boolean status) {
+            int STAT = gpuRegisters.getSTAT();            
+            STAT &= 0xB;
+            STAT |= ((status ? 1 : 0) << 2);
+            setSTAT(STAT);
+        }
+
+        void setSTATMode(int mode) {
+            int STAT = gpuRegisters.getSTAT();            
+            STAT &= 0xC;
+            STAT |= (mode &= 0x3);
+            setSTAT(STAT);
+        }
+
         int getBGTileMapAddress() {
             int LCDC = getLCDC();
             return (ByteUtils.getBit(LCDC, BG_TILE_MAP_ADDRESS_BIT) ? BG_TILE_MAP_ADDRESS_1 : BG_TILE_MAP_ADDRESS_0);
         }
 
+        boolean isTileDataAddressSigned() {
+            int LCDC = getLCDC();
+            return ByteUtils.getBit(LCDC, BG_TILE_MAP_ADDRESS_BIT);
+        }
+
         int getTileDataAddress() {
             int LCDC = getLCDC();
             return (ByteUtils.getBit(LCDC, TILE_DATA_ADDRESS_BIT) ? TILE_DATA_ADDRESS_1 : TILE_DATA_ADDRESS_0);
-        }        
+        }
+        
+        int getSpriteTileDataAddress() {
+            return TILE_DATA_ADDRESS_1;
+        }
 
         int getSCY() {
             return mmu.getMemRegister(MemRegisterEnum.SCY);
@@ -80,10 +105,20 @@ public class GPU extends Component {
         int getLY() {
             return mmu.getMemRegister(MemRegisterEnum.LY);
         }
+
+        int getLYC() {
+            return mmu.getMemRegister(MemRegisterEnum.LYC);
+        }
     
         void incrementLY() {
             int LY = getLY();
             mmu.setMemRegister(MemRegisterEnum.LY, ++LY % LINES_PER_FRAME);
+            if (getLY() == getLYC()) {
+                setSTATLYCFlag(true);
+                checkSTATInterrupt(6);
+            } else {
+                setSTATLYCFlag(false);
+            }
         }
 
         void resetLY() {
@@ -91,21 +126,35 @@ public class GPU extends Component {
         }
 
         int[] getBGP() {
-            int BGP = mmu.getMemRegister(MemRegisterEnum.BGP);
-            int[] grayShades = new int[] {
-                BGP & 0x3,
-                BGP >> 2 & 0x3,
-                BGP >> 4 & 0x3,
-                BGP >> 6 & 0x3 
+            return getPalette(MemRegisterEnum.BGP);
+        }
+
+        int[] getOBP0() {
+            return getPalette(MemRegisterEnum.OBP0);
+        }
+
+        int[] getOBP1() {
+            return getPalette(MemRegisterEnum.OBP1);
+        }
+
+        private int[] getPalette(MemRegisterEnum paletteRegister) {
+            int registerValue = mmu.getMemRegister(paletteRegister);
+            int[] palette = new int[] {
+                registerValue & 0x3,
+                registerValue >> 2 & 0x3,
+                registerValue >> 4 & 0x3,
+                registerValue >> 6 & 0x3 
             };
-            return grayShades;
+            return palette;
         }
 
     }
 
     private final int VBLANK_INT_REQUEST_BIT = 0;
+    //private final int LCDSTAT_INT_REQUEST_BIT = 1;
+    //private boolean LCDSTATInterruptTriggeredInLastCheck;
 
-    private final int HBLANK_EARLIEST_START_TICK = 252;
+    private final int SCANLINE_TICKS = 456;
     private final int VBLANK_START_LINE;
     private final int LINES_PER_FRAME;
 
@@ -118,17 +167,20 @@ public class GPU extends Component {
     private Mode GPU_MODE;
 
     private Display display;
+    private MMU mmu;
+
     private GPURegisters gpuRegisters;
     private GPUMode gpuMode;
     private int ticksInLine;
 
     public GPU(Display _display, MMU _mmu) {
         display = _display;
+        mmu = _mmu;
         VBLANK_START_LINE = display.getGameboyLCDHeight();
         LINES_PER_FRAME = VBLANK_START_LINE + 10;
-        gpuRegisters = new GPURegisters(_mmu);
+        gpuRegisters = new GPURegisters(mmu);
         GPU_MODE = Mode.OAM_SEARCH;
-        gpuMode = new OAMSearchMode();
+        gpuMode = new OAMSearchMode(gpuRegisters, mmu);
     }
 
     public void tick() {
@@ -137,20 +189,24 @@ public class GPU extends Component {
         ticksInLine++;
         if (gpuMode.isFinished()) {
             switch (GPU_MODE) {
-                case OAM_SEARCH:                    
+                case OAM_SEARCH:              
                     GPU_MODE = Mode.PIXEL_TRANSFER;
-                    gpuMode = new PixelTransferMode(gpuRegisters, display);
+                    LinkedList<Sprite> sprites = ((OAMSearchMode) gpuMode).getSprites();
+                    gpuMode = new PixelTransferMode(gpuRegisters, sprites, display);
                     break;
                 case PIXEL_TRANSFER:
+                    checkSTATInterrupt(3);
                     GPU_MODE = Mode.HBLANK;
-                    gpuMode = new HBlankMode(ticksInLine - HBLANK_EARLIEST_START_TICK);
+                    gpuMode = new HBlankMode(SCANLINE_TICKS - ticksInLine);
                     break;
                 case HBLANK:
                     gpuRegisters.incrementLY();
                     if (gpuRegisters.getLY() < VBLANK_START_LINE) {
+                        checkSTATInterrupt(5);
                         GPU_MODE = Mode.OAM_SEARCH;
-                        gpuMode = new OAMSearchMode();                        
+                        gpuMode = new OAMSearchMode(gpuRegisters, mmu);                        
                     } else {
+                        checkSTATInterrupt(4);
                         GPU_MODE = Mode.VBLANK;
                         gpuMode = new VBlankMode();
                         requestVBlankInterrupt();
@@ -160,8 +216,9 @@ public class GPU extends Component {
                 case VBLANK:
                     gpuRegisters.incrementLY();
                     if (gpuRegisters.getLY() == 0) {
+                        checkSTATInterrupt(5);
                         GPU_MODE = Mode.OAM_SEARCH;                        
-                        gpuMode = new OAMSearchMode();                        
+                        gpuMode = new OAMSearchMode(gpuRegisters, mmu);                        
                     } else {
                         gpuMode = new VBlankMode();
                     }
@@ -176,7 +233,7 @@ public class GPU extends Component {
         gpuRegisters.resetLY();
         ticksInLine = 0;
         GPU_MODE = Mode.OAM_SEARCH;                        
-        gpuMode = new OAMSearchMode();
+        gpuMode = new OAMSearchMode(gpuRegisters, mmu);
     }
 
     private void requestVBlankInterrupt() {
@@ -186,10 +243,20 @@ public class GPU extends Component {
     }
 
     private void setSTATMode(int mode) {
-        int STAT = gpuRegisters.getSTAT();
-        STAT &= 0xC;
-        STAT |= mode &= 0x3;
-        gpuRegisters.setSTAT(STAT);
+        gpuRegisters.setSTATMode(mode);
+    }
+
+    private void checkSTATInterrupt(int bit) {
+        /*int STAT = gpuRegisters.getSTAT();
+        boolean interrupt = (STAT & (1 << bit)) != 0;
+        if (interrupt & !LCDSTATInterruptTriggeredInLastCheck) {
+            int IF = gpuRegisters.mmu.getMemRegister(MemRegisterEnum.IF);
+            IF = ByteUtils.setBit(IF, LCDSTAT_INT_REQUEST_BIT);
+            gpuRegisters.mmu.setMemRegister(MemRegisterEnum.IF, IF);
+            LCDSTATInterruptTriggeredInLastCheck = true;
+        } else {
+            LCDSTATInterruptTriggeredInLastCheck = false;
+        }*/
     }
 
 }

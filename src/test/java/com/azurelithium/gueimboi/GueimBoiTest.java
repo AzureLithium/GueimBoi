@@ -14,7 +14,7 @@ public class GueimBoiTest {
 
     final static Logger logger = LoggerFactory.getLogger(GueimBoiTest.class);
     final static String testResourcesPath = "D:/gueimboi/src/test/resources/";
-    // final static String testResourcesPath = "/media/jlario/JAVI/gueimboi/src/test/resources/";
+    //final static String testResourcesPath = "/media/jlario/JAVI/gueimboi/src/test/resources/";
 
     @Test
     public void testBlarggCPUInstrs_01_SPECIAL() {
@@ -93,9 +93,7 @@ public class GueimBoiTest {
 
     private void testROM(String ROMPath) {
         MainWindow mainWindow = new MainWindow();
-        mainWindow.loadROM(ROMPath);  
-        mainWindow.initializeGameBoy();
-        mainWindow.startGameBoy();
+        mainWindow.loadROM(ROMPath);
         TestResultChecker trc = new TestResultChecker(mainWindow.getSerialContent());
         boolean result = trc.call();
         mainWindow.stopGameBoy();

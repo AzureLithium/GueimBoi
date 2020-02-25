@@ -15,6 +15,8 @@ public enum MemRegisterEnum {
     LYC,
     DMA, 
     BGP,
+    OBP0,
+    OBP1,
     ROM_DISABLE,
     IF,
     IE 
